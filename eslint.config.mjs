@@ -7,6 +7,7 @@ const eslintConfig = defineConfig([
     ...nextVitals,
     ...nextTs,
 
+
     // PRETTIER CONFIG (Flat config compatible)
     prettierConfig,
 
