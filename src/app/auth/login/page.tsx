@@ -1,9 +1,8 @@
-// src/app/auth/login/page.tsx
 "use client"
 
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
+import {useForm} from "react-hook-form"
+import {z} from "zod"
+import {zodResolver} from "@hookform/resolvers/zod"
 
 import {
     Form,
@@ -14,13 +13,13 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { useState } from "react"
-import { Eye, EyeOff, XCircle, Loader2 } from "lucide-react"
-import api, { setToken } from "@/lib/api/axios"
-import { router } from "next/client"
+import {Input} from "@/components/ui/input"
+import {Button} from "@/components/ui/button"
+import {Card, CardHeader, CardTitle, CardContent} from "@/components/ui/card"
+import {useState} from "react"
+import {Eye, EyeOff, XCircle} from "lucide-react"
+import api, {setToken} from "@/lib/api/axios"
+import { useRouter } from "next/navigation";
 
 const LoginSchema = z.object({
     email: z.string().email("Invalid email"),
@@ -39,29 +38,42 @@ export default function LoginPage() {
             password: "",
         },
     })
+    const router = useRouter()
+
 
     async function onSubmit(values: z.infer<typeof LoginSchema>) {
         setLoading(true)
         setError(null)
 
         try {
-            // send the typed values as the request body
-            const response = await api.post("/auth/login", values)
+            const response = await api.post("/auth/login", values, {withCredentials: true})
+
             setToken(response.data.access_token)
 
-            await router.push("/dashboard")
+            // ❗ DO NOT AWAIT HERE ❗
+            router.push("/dashboard")
+
             console.log("Login successful")
-        } catch (err: unknown) {
-            // narrow unknown to show a friendly message and satisfy ESLint
-            if (err instanceof Error) {
-                setError(err.message)
-            } else {
-                setError(String(err) || "An unexpected error occurred")
+
+        } catch (err: any) {
+            console.log("FULL ERROR OBJECT:", err);
+
+            if (err.response) {
+                console.log("ERROR RESPONSE:", err.response.data);
             }
+            if (err.message) {
+                console.log("ERROR MESSAGE:", err.message);
+            }
+            if (err.stack) {
+                console.log("STACK:", err.stack);
+            }
+
+            setError("Login failed");
         } finally {
             setLoading(false)
         }
     }
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
@@ -79,7 +91,7 @@ export default function LoginPage() {
                     >
                         <CardHeader className="flex items-center justify-between gap-2 px-3 py-2">
                             <div className="flex items-center gap-2">
-                                <XCircle className="text-red-600" size={16} />
+                                <XCircle className="text-red-600" size={16}/>
                                 <CardTitle className="text-sm font-medium text-red-700">Login failed</CardTitle>
                             </div>
                             <button
@@ -106,13 +118,13 @@ export default function LoginPage() {
                         <FormField
                             control={form.control}
                             name="email"
-                            render={({ field }) => (
+                            render={({field}) => (
                                 <FormItem>
                                     <FormLabel>Email</FormLabel>
                                     <FormControl>
                                         <Input placeholder="email@example.com" {...field} />
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage/>
                                 </FormItem>
                             )}
                         />
@@ -120,7 +132,7 @@ export default function LoginPage() {
                         <FormField
                             control={form.control}
                             name="password"
-                            render={({ field }) => (
+                            render={({field}) => (
                                 <FormItem>
                                     <FormLabel>Password</FormLabel>
                                     <FormControl>
@@ -137,11 +149,11 @@ export default function LoginPage() {
                                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                                 aria-label={showPassword ? "Hide password" : "Show password"}
                                             >
-                                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
                                             </button>
                                         </div>
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage/>
                                 </FormItem>
                             )}
                         />
@@ -149,17 +161,9 @@ export default function LoginPage() {
                         <Button
                             type="submit"
                             disabled={loading}
-                            aria-busy={loading}
-                            className="w-full bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg py-3 flex items-center justify-center"
+                            className="w-full bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg py-3"
                         >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Logging in...
-                                </>
-                            ) : (
-                                "Login"
-                            )}
+                            {loading ? "Logging in..." : "Login"}
                         </Button>
                     </form>
                 </Form>

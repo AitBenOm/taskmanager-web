@@ -1,3 +1,65 @@
+/* GLOBAL DESIGN TOKENS (MODEL C - FRIENDLY COLORFUL) */
+
+:root {
+    /* COLORS */
+    --primary: #6366F1;
+    --primary-dark: #4F46E5;
+    --secondary: #A78BFA;
+    --accent-pink: #EC4899;
+    --accent-cyan: #06B6D4;
+    --accent-lime: #A3E635;
+
+    --bg: #F7F8FA;
+    --card: #FFFFFF;
+
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+
+    /* RADII */
+    --radius-xs: 6px;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+
+    /* SHADOWS */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.06);
+    --shadow-lg: 0 6px 12px rgba(0,0,0,0.08);
+
+    /* TYPOGRAPHY */
+    --font-sans: 'Inter', sans-serif;
+}
+
+/* BASE IMPORTS (Tailwind v4) */
 @import "tailwindcss/preflight";
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities";
+
+/* GLOBAL RESET */
+body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+}
+
+/* CARD STYLE */
+.card {
+    background: var(--card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-xl);
+}
+
+/* PRIMARY BUTTON STYLE (Model C) */
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
