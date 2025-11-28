@@ -19,12 +19,13 @@ const LoginSchema = z.object({
     email: z.string().email("Invalid email"),
     password: z.string().min(1, "Password is required"),
 })
-const {setUser, setToken} = useAuthStore();
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const {setUser, setToken} = useAuthStore();
+
 
     const form = useForm<z.infer<typeof LoginSchema>>({
         resolver: zodResolver(LoginSchema),
@@ -45,6 +46,7 @@ export default function LoginPage() {
 
             setToken(response.data.access_token);
             if (response.data.user) {
+                setLoading(false)
                 setUser(response.data.user);
             }
             router.push("/dashboard")
@@ -65,7 +67,6 @@ export default function LoginPage() {
 
             setError("Login failed");
         } finally {
-            setLoading(false)
         }
     }
 

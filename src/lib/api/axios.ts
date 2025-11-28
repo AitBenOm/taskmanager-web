@@ -67,11 +67,14 @@ api.interceptors.response.use(
 
                 // Retry original request with new token
                 originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                useLoadingStore.getState().setLoading(false);
                 return api(originalRequest);
 
             } catch (refreshError) {
                 // Refresh failed — user must re-login
                 setToken(null);
+                useAuthStore.getState().setUser(null);
+                useLoadingStore.getState().setLoading(false);
                 return Promise.reject(refreshError);
             }
         }
