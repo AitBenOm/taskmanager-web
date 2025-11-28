@@ -4,27 +4,22 @@ import {useForm} from "react-hook-form"
 import {z} from "zod"
 import {zodResolver} from "@hookform/resolvers/zod"
 
-import {
-    Form,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormControl,
-    FormMessage,
-} from "@/components/ui/form"
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form"
 
 import {Input} from "@/components/ui/input"
 import {Button} from "@/components/ui/button"
-import {Card, CardHeader, CardTitle, CardContent} from "@/components/ui/card"
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {useState} from "react"
 import {Eye, EyeOff, XCircle} from "lucide-react"
-import api, {setToken} from "@/lib/api/axios"
-import { useRouter } from "next/navigation";
+import api from "@/lib/api/axios"
+import {useRouter} from "next/navigation";
+import {useAuthStore} from "@/store/auth.store";
 
 const LoginSchema = z.object({
     email: z.string().email("Invalid email"),
     password: z.string().min(1, "Password is required"),
 })
+const {setUser, setToken} = useAuthStore();
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false)
@@ -48,11 +43,11 @@ export default function LoginPage() {
         try {
             const response = await api.post("/auth/login", values, {withCredentials: true})
 
-            setToken(response.data.access_token)
-
-            // ❗ DO NOT AWAIT HERE ❗
+            setToken(response.data.access_token);
+            if (response.data.user) {
+                setUser(response.data.user);
+            }
             router.push("/dashboard")
-
             console.log("Login successful")
 
         } catch (err: any) {

@@ -1,4 +1,7 @@
 import axios, {AxiosError} from "axios"
+import {handleError} from "@/lib/error-handler";
+import {useLoadingStore} from "@/store/loading-store";
+import {useAuthStore} from "@/store/auth.store";
 
 // Temporary in-memory access token.
 // This will be managed by Zustand in G.5.
@@ -16,29 +19,28 @@ const api = axios.create({
     withCredentials: true, // needed for refresh token cookie
 })
 
-const processQueue = (error: any, token: string | null = null) => {
-    failedQueue.forEach((prom) => {
-        if (error) {
-            prom.reject(error)
-        } else {
-            prom.resolve(token)
-        }
-    })
-    failedQueue = []
-}
 
 /**
  * 1) REQUEST INTERCEPTOR
  * Inject the access token in every request.
  */
+
+
 api.interceptors.request.use((config) => {
-    if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`
+
+    useLoadingStore.getState().setLoading(true);
+    const token = useAuthStore.getState().token;
+
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
+
     config.withCredentials = true;
     return config;
 })
-/*api.interceptors.response.use(
+
+
+api.interceptors.response.use(
     // SUCCESS: return the response
     (response) => response,
 
@@ -78,7 +80,7 @@ api.interceptors.request.use((config) => {
         return Promise.reject(error);
     }
 );
-*/
+
 
 /**
  * 2) RESPONSE INTERCEPTOR (Prepare for G.2)
@@ -90,7 +92,8 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         // We will complete this logic in G.2.
-        return Promise.reject(error)
+        const normalized = handleError(error);
+        return Promise.reject(normalized)
     }
 )
 
