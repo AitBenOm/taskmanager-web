@@ -3,7 +3,7 @@
 import { useLoadingStore } from "@/store/loading-store";
 
 export default function LoadingOverlay() {
-    const isLoading = useLoadingStore((s: { isLoading: never; }) => s.isLoading);
+    const isLoading = useLoadingStore((s) => s.isLoading);
 
     if (!isLoading) return null;
 
