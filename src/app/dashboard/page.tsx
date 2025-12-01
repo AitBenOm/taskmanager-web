@@ -1,44 +1,43 @@
 "use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useLoadingStore } from "@/store/loading-store";
+import { safeGet } from "@/lib/api/helpers";
 import {useAuthStore} from "@/store/auth.store";
-import api from "@/lib/api/axios";
-import {useLoadingStore} from "@/store/loading-store";
-import {useEffect} from "react";
 
 export default function DashboardPage() {
-
-    const {token, user, setUser, _hasHydrated} = useAuthStore();
+    const { token, user, setUser, _hasHydrated } = useAuthStore();
     const setLoading = useLoadingStore((s) => s.setLoading);
+    const router = useRouter();
 
+    // 🚨 1. Don't render anything before hydration
+    if (!_hasHydrated) return null;
 
     useEffect(() => {
+        const loadAndRedirect = async () => {
+            // 🚨 2. If no token → redirect to login
+            if (!token) {
+                router.push("/auth/login");
+                return;
+            }
 
-        const fetchUserData = async () => {
-            setLoading(true);
-            try {
-                const response = await api.get('/users/profile');
-                setUser(response.data);
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-            } finally {
+            // 🚨 3. Fetch user only if necessary
+            if (!user) {
+                setLoading(true);
+
+                const response = await safeGet("/users/profile");
+                if (response) setUser(response.data);
+
                 setLoading(false);
             }
+
+            // 🚨 4. Redirect after data is ready
+            router.push("/dashboard/profile");
         };
 
-        if (token !== null && user === null) {
-            fetchUserData();
-        }
-    }, []);
+        loadAndRedirect();
+    }, [token, user, router, setUser, setLoading]);
 
-    return (
-        <div>
-            <h1>Dashboard</h1>
-            <p>Welcome to your dashboard!</p>
-
-            {user && (
-                <div style={{marginTop: 20}}>
-                    <strong>Logged in as:</strong> {user.fullName} ({user.email})
-                </div>
-            )}
-        </div>
-    );
+    return null;
 }

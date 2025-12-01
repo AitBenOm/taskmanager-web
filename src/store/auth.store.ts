@@ -2,15 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-export interface User {
-    id: string;
-    email: string;
-    fullName: string;
-    role: string;
-    avatarUrl?: string | null;
-    familyId?: string | null;
-}
+import {User} from "@/types/user";
 
 interface AuthState {
     user: User | null;
@@ -18,7 +10,7 @@ interface AuthState {
     isAuthenticated: boolean;
     _hasHydrated: boolean;
 
-    setUser: (user: User | null) => void;
+    setUser: (user: unknown) => void;
     setToken: (token: string | null) => void;
     logout: () => void;
 }

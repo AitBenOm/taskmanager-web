@@ -8,12 +8,12 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@
 
 import {Input} from "@/components/ui/input"
 import {Button} from "@/components/ui/button"
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {useState} from "react"
-import {Eye, EyeOff, XCircle} from "lucide-react"
+import {Eye, EyeOff} from "lucide-react"
 import api from "@/lib/api/axios"
 import {useRouter} from "next/navigation";
 import {useAuthStore} from "@/store/auth.store";
+import {useErrorStore} from "@/store/error-store";
 
 const LoginSchema = z.object({
     email: z.string().email("Invalid email"),
@@ -35,6 +35,8 @@ export default function LoginPage() {
         },
     })
     const router = useRouter()
+    const errorMessage = useErrorStore((s) => s.error);
+
 
 
     async function onSubmit(values: z.infer<typeof LoginSchema>) {
@@ -65,6 +67,7 @@ export default function LoginPage() {
                 console.log("STACK:", err.stack);
             }
 
+
             setError("Login failed");
         } finally {
         }
@@ -79,34 +82,8 @@ export default function LoginPage() {
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">Welcome back 👋</h1>
                 <p className="text-gray-500 mb-6">Login to your TaskManager account</p>
 
-                {error && (
-                    <Card
-                        className="mb-4 max-w-sm mx-auto border-red-200 bg-red-50 rounded-md shadow-sm"
-                        role="alert"
-                        aria-live="assertive"
-                    >
-                        <CardHeader className="flex items-center justify-between gap-2 px-3 py-2">
-                            <div className="flex items-center gap-2">
-                                <XCircle className="text-red-600" size={16}/>
-                                <CardTitle className="text-sm font-medium text-red-700">Login failed</CardTitle>
-                            </div>
-                            <button
-                                onClick={() => setError(null)}
-                                className="text-xs text-red-600 hover:underline"
-                                aria-label="Dismiss error"
-                            >
-                                Dismiss
-                            </button>
-                        </CardHeader>
-
-                        <CardContent className="px-3 pb-3 text-sm text-red-700 leading-tight">
-                            Invalid email or password. Verify your credentials or{' '}
-                            <a href="/auth/reset" className="font-medium underline text-red-700">
-                                reset your password
-                            </a>
-                            .
-                        </CardContent>
-                    </Card>
+                {errorMessage && (
+                    <p className="text-red-500 text-sm mb-3">{errorMessage}</p>
                 )}
 
                 <Form {...form}>

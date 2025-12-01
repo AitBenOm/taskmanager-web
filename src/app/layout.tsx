@@ -6,6 +6,9 @@ import LoadingOverlay from "@/components/global/LoadingOverlay";
 import {useLoadingStore} from "@/store/loading-store";
 import {useEffect} from "react";
 import {usePathname} from "next/navigation";
+import { Toaster, toast } from "sonner"
+import ClientLayoutWrapper from "@/components/global/ClientLayoutWrapper";
+
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -32,9 +35,12 @@ export default function RootLayout({children,}: Readonly<{ children: React.React
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-            <LoadingOverlay/>
 
-            {children}
+            <ClientLayoutWrapper>
+                <LoadingOverlay/>
+                {children}
+            </ClientLayoutWrapper>
+
             </body>
             </html>
         );
