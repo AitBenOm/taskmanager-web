@@ -1,10 +1,12 @@
 "use client";
 
 import { useLoadingStore } from "@/store/loading-store";
+import {useState} from "react";
 
 export default function LoadingOverlay() {
     const isLoading = useLoadingStore((s) => s.isLoading);
-
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     if (!isLoading) return null;
 
     return (

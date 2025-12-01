@@ -21,6 +21,16 @@ export async function safePost<T>(url: string, body: any): Promise<ApiResponse<T
     }
 }
 
+export async function safePatch<T>(url: string, body: any): Promise<ApiResponse<T> | null> {
+    try {
+        const res = await api.patch(url, body);
+        return { success: true, data: res.data };
+    } catch (err) {
+        console.error("PATCH ERROR:", err);
+        return null;
+    }
+}
+
 export function extractErrorMessage(error: any): string {
     if (typeof error === "string") return error;
     if (error?.response?.data?.message) return error.response.data.message;

@@ -166,3 +166,54 @@ body {
     font-size: 0.95rem;
     cursor: pointer;
 }
+/* GLOBAL DARK GRADIENT BACKGROUND */
+body {
+    background: linear-gradient(145deg, #0A0F1F 0%, #0E1629 100%);
+    color: #fff;
+}
+
+/* GLASS EFFECT (for cards, sidebar, topbar, modals) */
+.glass {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* STRONGER GLASS FOR MAIN CARD */
+.glass-strong {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(25px);
+}
+
+/* TITLE FONT */
+.h1-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+/* SUBTITLE */
+.subtle-text {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* AVATAR GOLD RING */
+.avatar-ring {
+    border: 3px solid #D6B24A;
+    box-shadow: 0 0 12px rgba(214, 178, 74, 0.6);
+}
+
+/* BUTTONS */
+.btn-glass-primary {
+    background: linear-gradient(135deg, #3A86FF 0%, #4361EE 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: white;
+}
+
+.btn-glass-secondary {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: white;
+}
