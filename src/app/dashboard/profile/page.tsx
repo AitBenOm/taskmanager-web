@@ -1,73 +1,164 @@
 "use client";
 
-import {useState} from "react";
-import {useAuthStore} from "@/store/auth.store";
-import {Button} from "@/components/ui/button";
-import {Form, FormField, FormItem, FormLabel, FormControl, FormMessage} from "@/components/ui/form";
-import {Input} from "@/components/ui/input";
-import {Eye, EyeOff} from "lucide-react";
-import {z} from "zod";
-const resetPasswordSchema = z.object({
-    oldPassword: z.string().min(6, "Old password must be at least 6 characters"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string().min(6, "Confirm password is required")
-}).refine((data: { password: any; confirmPassword: any; }) => data.password === data.confirmPassword, {
+import { useState } from "react";
+import { useAuthStore } from "@/store/auth.store";
+import { Button } from "@/components/ui/button";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Eye, EyeOff } from "lucide-react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import api from "@/lib/api/axios";
+import { useRouter } from "next/navigation";
+import {safePatch} from "@/lib/api/helpers";
+
+//
+// ZOD SCHEMAS
+//
+const passwordSchema = z.object({
+    oldPassword: z.string().min(6),
+    password: z.string().min(6),
+    confirmPassword: z.string().min(6)
+}).refine((d) => d.password === d.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
 });
 
-const profileFields = z.object({
+const profileSchema = z.object({
     fullName: z.string().min(3, "Full name must be at least 3 characters"),
     email: z.string().email("Invalid email"),
     avatarUrl: z.string().url("Invalid URL").optional()
 });
 
 export default function ProfilePage() {
-    const {user, logout: onLogout} = useAuthStore();
+    const { user, logout, setUser } = useAuthStore();
+    const router = useRouter();
 
-    const [showPasswordSection, setShowPasswordSection] = useState(false);
-    const [loading, setLoading] = useState(false);
+    //
+    // MODAL STATES
+    //
+    const [pwdOpen, setPwdOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
 
-    const [showOld, setShowOld] = useState(false);
-    const [showNew, setShowNew] = useState(false);
-    const [showConfirm, setShowConfirm] = useState(false);
+    //
+    // PASSWORD VISIBILITY STATES
+    //
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // Your form instance here (Zod + react-hook-form)
-    const resetForm = /* your existing form */ null;
+    //
+    // UPDATE ANIMATION STATE
+    //
+    const [updated, setUpdated] = useState(false);
 
-    const onSubmit = async (data: any) => {
-        setLoading(true);
-        // your call logic
-        setLoading(false);
+    //
+    // FORMS
+    //
+    const resetForm = useForm<z.infer<typeof passwordSchema>>({
+        resolver: zodResolver(passwordSchema),
+        defaultValues: {
+            oldPassword: "",
+            password: "",
+            confirmPassword: ""
+        },
+    });
+
+    const editForm = useForm<z.infer<typeof profileSchema>>({
+        resolver: zodResolver(profileSchema),
+        defaultValues: {
+            fullName: user?.fullName || "",
+            email: user?.email || "",
+            avatarUrl: user?.avatarUrl || ""
+        },
+    });
+
+    //
+    // ACTIONS
+    //
+    const onExit = () => {
+        logout();
+        router.push("/auth/login");
     };
 
+    const onChangePassword = async (data: z.infer<typeof passwordSchema>) => {
+        try {
+            await api.post("/auth/change-password", {
+                oldPassword: data.oldPassword,
+                newPassword: data.password
+            });
+
+            resetForm.reset();
+            setPwdOpen(false);
+            // LIVE ANIMATION TRIGGER
+            setUpdated(true);
+            setTimeout(() => setUpdated(false), 600);
+        } catch (err) {
+            console.log("Password update failed", err);
+        }
+    };
+
+    const onSubmitEdit = async (data: z.infer<typeof profileSchema>) => {
+        try {
+            const dto: any = {
+                fullName: data.fullName,
+                avatarUrl: data.avatarUrl,
+            };
+            const response = await safePatch("/users/profile", dto);
+
+            // FIX: merge instead of overwriting
+            if (response) {
+                setUser({
+                    ...user,
+                    ...response.data,
+                });
+            }
+
+            // LIVE ANIMATION TRIGGER
+            setUpdated(true);
+            setTimeout(() => setUpdated(false), 600);
+
+            setEditOpen(false);
+
+        } catch (err) {
+            console.log("Profile update failed", err);
+        }
+    };
+
+    //
+    // PAGE RENDER
+    //
     return (
         <div className="w-full flex justify-center">
-            <div className="w-full max-w-3xl bg-white border border-gray-200 shadow-sm rounded-2xl p-10">
+            <div
+                className={`
+          w-full max-w-3xl rounded-2xl p-10 bg-white border border-gray-200 shadow-sm
+          transition-all duration-500
+          ${updated ? "ring-2 ring-[rgba(100,150,255,0.45)] shadow-xl scale-[1.01]" : ""}
+        `}
+            >
 
                 {/* HEADER */}
                 <div className="flex flex-col items-center mb-8">
 
-                    {/* Avatar */}
-                    <div
-                        className="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center border border-gray-300 overflow-hidden">
+                    {/* AVATAR */}
+                    <div className="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center border border-gray-300 overflow-hidden">
                         {user?.avatarUrl ? (
-                            <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover"/>
+                            <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                         ) : (
                             <span className="text-gray-500 text-sm">Avatar</span>
                         )}
                     </div>
 
-                    {/* Name & Email */}
-                    <h2 className="text-2xl font-semibold mt-4 text-gray-900">
-                        {user?.fullName}
-                    </h2>
-
+                    {/* NAME + EMAIL */}
+                    <h2 className="text-2xl font-semibold mt-4 text-gray-900">{user?.fullName}</h2>
                     <p className="text-gray-500 text-sm">{user?.email}</p>
                 </div>
 
                 {/* DIVIDER */}
-                <hr className="my-8"/>
+                <hr className="my-8" />
 
                 {/* INFO GRID */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
@@ -93,134 +184,236 @@ export default function ProfilePage() {
               {user?.familyId || "No Family Linked"}
             </span>
                     </div>
-
                 </div>
 
                 {/* ACTIONS */}
                 <div className="flex justify-center mt-10 gap-4">
-                    <Button className="px-6 bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button
+                        onClick={() => setEditOpen(true)}
+                        className="px-6 bg-[#4e7dfc] hover:bg-[#3b6af6] text-white rounded-lg"
+                    >
                         Edit Profile
                     </Button>
 
-                    <Button variant="outline" onClick={onLogout}>
+                    <Button variant="outline" onClick={onExit}>
                         Logout
                     </Button>
                 </div>
 
-                {/* Toggle Password */}
+                {/* CHANGE PASSWORD LINK */}
                 <div className="mt-8 flex justify-center">
                     <button
-                        onClick={() => setShowPasswordSection(!showPasswordSection)}
+                        onClick={() => setPwdOpen(true)}
                         className="text-blue-600 font-medium hover:underline text-sm"
                     >
-                        {showPasswordSection ? "Hide Password ▲" : "Change Password ▼"}
+                        Change Password
                     </button>
                 </div>
 
-                {/* PASSWORD SECTION */}
-                {showPasswordSection && (
-                    <div className="mt-10 bg-gray-50 border border-gray-200 p-6 rounded-xl">
+                {/* CHANGE PASSWORD MODAL */}
+                <Dialog open={pwdOpen} onOpenChange={setPwdOpen}>
+                    <DialogContent className="bg-white rounded-xl p-8 shadow-xl w-full max-w-lg">
 
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                            Change Password
-                        </h3>
+                        <DialogHeader>
+                            <DialogTitle className="text-gray-900">Change Password</DialogTitle>
+                            <DialogDescription className="text-gray-500">
+                                Enter your old password and create a new one.
+                            </DialogDescription>
+                        </DialogHeader>
 
-                        <Form {...resetPasswordSchema}>
-                            <form onSubmit={resetPasswordSchema.handleSubmit(onSubmit)} className="space-y-6">
+                        <Form {...resetForm}>
+                            <form onSubmit={resetForm.handleSubmit(onChangePassword)} className="space-y-6 mt-4">
 
-                                {/* OLD */}
+                                {/* OLD PASSWORD */}
                                 <FormField
-                                    control={resetPasswordSchema.control}
+                                    control={resetForm.control}
                                     name="oldPassword"
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Old Password</FormLabel>
+                                            <FormLabel className="text-gray-800">Old Password</FormLabel>
                                             <FormControl>
                                                 <div className="relative">
                                                     <Input
-                                                        type={showOld ? "text" : "password"}
+                                                        type={showOldPassword ? "text" : "password"}
                                                         placeholder="Enter old password"
+                                                        className="rounded-lg border-gray-300 pr-12 text-gray-800 placeholder:text-gray-400"
                                                         {...field}
                                                     />
-                                                    <span
-                                                        onClick={() => setShowOld(!showOld)}
-                                                        className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
+                                                    <button
+                                                        type="button"
+                                                        tabIndex={-1}
+                                                        onClick={() => setShowOldPassword(!showOldPassword)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 hover:text-gray-700"
                                                     >
-                            {showOld ? <EyeOff size={18}/> : <Eye size={18}/>}
-                          </span>
+                                                        {showOldPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+                                                    </button>
                                                 </div>
                                             </FormControl>
-                                            <FormMessage/>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
 
-                                {/* NEW */}
+                                {/* NEW PASSWORD */}
                                 <FormField
-                                    control={resetPasswordSchema.control}
+                                    control={resetForm.control}
                                     name="password"
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>New Password</FormLabel>
+                                            <FormLabel className="text-gray-800">New Password</FormLabel>
                                             <FormControl>
                                                 <div className="relative">
                                                     <Input
-                                                        type={showNew ? "text" : "password"}
+                                                        type={showNewPassword ? "text" : "password"}
                                                         placeholder="Enter new password"
+                                                        className="rounded-lg border-gray-300 pr-12 text-gray-800 placeholder:text-gray-400"
                                                         {...field}
                                                     />
-                                                    <span
-                                                        onClick={() => setShowNew(!showNew)}
-                                                        className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
+                                                    <button
+                                                        type="button"
+                                                        tabIndex={-1}
+                                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 hover:text-gray-700"
                                                     >
-                            {showNew ? <EyeOff size={18}/> : <Eye size={18}/>}
-                          </span>
+                                                        {showNewPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+                                                    </button>
                                                 </div>
                                             </FormControl>
-                                            <FormMessage/>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
 
-                                {/* CONFIRM */}
+                                {/* CONFIRM PASSWORD */}
                                 <FormField
-                                    control={resetPasswordSchema.control}
+                                    control={resetForm.control}
                                     name="confirmPassword"
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Confirm Password</FormLabel>
+                                            <FormLabel className="text-gray-800">Confirm Password</FormLabel>
                                             <FormControl>
                                                 <div className="relative">
                                                     <Input
-                                                        type={showConfirm ? "text" : "password"}
+                                                        type={showConfirmPassword ? "text" : "password"}
                                                         placeholder="Confirm new password"
+                                                        className="rounded-lg border-gray-300 pr-12 text-gray-800 placeholder:text-gray-400"
                                                         {...field}
                                                     />
-                                                    <span
-                                                        onClick={() => setShowConfirm(!showConfirm)}
-                                                        className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
+                                                    <button
+                                                        type="button"
+                                                        tabIndex={-1}
+                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 hover:text-gray-700"
                                                     >
-                            {showConfirm ? <EyeOff size={18}/> : <Eye size={18}/>}
-                          </span>
+                                                        {showConfirmPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+                                                    </button>
                                                 </div>
                                             </FormControl>
-                                            <FormMessage/>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
 
                                 <Button
                                     type="submit"
-                                    disabled={loading}
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+                                    className="w-full bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg py-3"
                                 >
-                                    {loading ? "Updating..." : "Update Password"}
+                                    Update Password
                                 </Button>
 
                             </form>
                         </Form>
-                    </div>
-                )}
+
+                    </DialogContent>
+                </Dialog>
+
+                {/* EDIT PROFILE MODAL */}
+                {/* EDIT PROFILE MODAL */}
+                <Dialog open={editOpen} onOpenChange={setEditOpen}>
+                    <DialogContent className="bg-white rounded-xl p-8 shadow-xl w-full max-w-lg">
+
+                        <DialogHeader>
+                            <DialogTitle className="text-gray-900">Edit Profile</DialogTitle>
+                            <DialogDescription className="text-gray-500">
+                                Update your personal information.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <Form {...editForm}>
+                            <form onSubmit={editForm.handleSubmit(onSubmitEdit)} className="space-y-6 mt-4">
+
+                                {/* FULL NAME */}
+                                <FormField
+                                    control={editForm.control}
+                                    name="fullName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-gray-800">Full Name</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Enter your full name"
+                                                    className="rounded-lg border-gray-300 text-gray-800 placeholder:text-gray-400"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* EMAIL */}
+                                <FormField
+                                    control={editForm.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-gray-800">Email</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="email"
+                                                    placeholder="Enter your email"
+                                                    className="rounded-lg border-gray-300 text-gray-800 placeholder:text-gray-400"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* AVATAR URL */}
+                                <FormField
+                                    control={editForm.control}
+                                    name="avatarUrl"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-gray-800">Avatar URL</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="https://your-image.com/avatar.png"
+                                                    className="rounded-lg border-gray-300 text-gray-800 placeholder:text-gray-400"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* SAVE BUTTON */}
+                                <Button
+                                    type="submit"
+                                    className="w-full bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg py-3"
+                                >
+                                    Save Changes
+                                </Button>
+
+                            </form>
+                        </Form>
+
+                    </DialogContent>
+                </Dialog>
+
 
             </div>
         </div>

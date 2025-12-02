@@ -1,54 +1,69 @@
-"use client";
-
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import {User} from "@/types/user";
 
-interface AuthState {
-    user: User | null;
-    token: string | null;
-    isAuthenticated: boolean;
-    _hasHydrated: boolean;
-
-    setUser: (user: unknown) => void;
-    setToken: (token: string | null) => void;
-    logout: () => void;
-}
-
-export const useAuthStore = create<AuthState>()(
+export const useAuthStore = create(
     persist(
-        (set) => ({
-            user: null,
+        (set, get) => ({
+            //
+            // USER SESSION
+            //
+            user: null,     // { id, fullName, email, avatarUrl, role, familyId, ... }
             token: null,
-            isAuthenticated: false,
             _hasHydrated: false,
 
-            setUser: (user) =>
-                set({
-                    user,
-                    isAuthenticated: !!user,
-                }),
+            //
+            // GLOBAL UPDATE FLAG (G.3.5)
+            //
+            _updated: false,
 
-            setToken: (token) =>
-                set({
-                    token,
-                    isAuthenticated: !!token,
-                }),
+            //
+            // SET USER (with merge + update event)
+            //
+            setUser: (data: any) => {
+                const current = get().user;
 
-            logout: () =>
+                // Merge user fields instead of overwriting
+                const merged = {
+                    ...current,
+                    ...data,
+                };
+
+                set({
+                    user: merged,
+                    _updated: true,    // 🔥 trigger global animations everywhere
+                });
+
+                // Reset the animation flag after 500ms
+                setTimeout(() => {
+                    set({ _updated: false });
+                }, 500);
+            },
+
+            //
+            // SET TOKEN
+            //
+            setToken: (token) => set({ token }),
+
+            //
+            // LOGOUT
+            //
+            logout: () => {
                 set({
                     user: null,
                     token: null,
-                    isAuthenticated: false,
-                }),
+                });
+            },
+
+            //
+            // HYDRATION CHECK
+            //
+            setHasHydrated: (state) => set({ _hasHydrated: state }),
         }),
 
         {
-            name: "auth-storage",
+            name: "auth-store",
             onRehydrateStorage: () => (state) => {
-                if (state) {
-                    state._hasHydrated = true;
-                }
+                if (state) state.setHasHydrated(true);
             },
         }
     )

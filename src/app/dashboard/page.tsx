@@ -12,7 +12,7 @@ export default function DashboardPage() {
     const router = useRouter();
 
     // 🚨 1. Don't render anything before hydration
-    if (!_hasHydrated) return null;
+
 
     useEffect(() => {
         const loadAndRedirect = async () => {
