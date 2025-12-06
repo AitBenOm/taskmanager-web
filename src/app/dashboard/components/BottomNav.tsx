@@ -19,23 +19,13 @@ export default function BottomNav() {
             />
 
             <nav
-                className="
-          fixed bottom-0 left-0 w-full h-16
-          flex items-center justify-around
-          bg-gradient-to-r from-[#0A2A55]/90 to-[#001B33]/90
-          backdrop-blur-xl border-t border-white/10
-          shadow-[0_-4px_20px_rgba(0,0,0,0.35)]
-          md:hidden z-50
-        "
+                className="fixed bottom-0 left-0 w-full h-16 flex items-center justify-around bg-gradient-to-r from-[#0A2A55]/90 to-[#001B33]/90 backdrop-blur-xl border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.35)] md:hidden z-50"
             >
                 {menuSections.map((section) => (
                     <button
                         key={section.section}
                         onClick={() => toggle(section.section)}
-                        className="
-              flex flex-col items-center justify-center
-              text-slate-200 text-xs
-            "
+                        className="flex flex-col items-center justify-center text-slate-200 text-xs"
                     >
                         <div
                             className={`

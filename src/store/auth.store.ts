@@ -1,69 +1,47 @@
+// src/store/auth.store.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export const useAuthStore = create(
+type User = {
+    id: string;
+    fullName?: string;
+    email?: string;
+    avatarUrl?: string;
+};
+
+type AuthState = {
+    user: User | null;
+    token: string | null;
+    _hasHydrated: boolean;
+
+    setUser: (user: User | null) => void;
+    setToken: (token: string | null) => void;
+    logout: () => void;
+    setHasHydrated: (v: boolean) => void;
+};
+
+export const useAuthStore = create<AuthState>()(
     persist(
-        (set, get) => ({
-            //
-            // USER SESSION
-            //
-            user: null,     // { id, fullName, email, avatarUrl, role, familyId, ... }
+        (set) => ({
+            // state
+            user: null,
             token: null,
             _hasHydrated: false,
 
-            //
-            // GLOBAL UPDATE FLAG (G.3.5)
-            //
-            _updated: false,
-
-            //
-            // SET USER (with merge + update event)
-            //
-            setUser: (data: any) => {
-                const current = get().user;
-
-                // Merge user fields instead of overwriting
-                const merged = {
-                    ...current,
-                    ...data,
-                };
-
-                set({
-                    user: merged,
-                    _updated: true,    // 🔥 trigger global animations everywhere
-                });
-
-                // Reset the animation flag after 500ms
-                setTimeout(() => {
-                    set({ _updated: false });
-                }, 500);
-            },
-
-            //
-            // SET TOKEN
-            //
+            // actions
+            setUser: (user) => set({ user }),
             setToken: (token) => set({ token }),
-
-            //
-            // LOGOUT
-            //
-            logout: () => {
-                set({
-                    user: null,
-                    token: null,
-                });
-            },
-
-            //
-            // HYDRATION CHECK
-            //
-            setHasHydrated: (state) => set({ _hasHydrated: state }),
+            logout: () => set({ user: null, token: null }),
+            setHasHydrated: (v) => set({ _hasHydrated: v }),
         }),
-
         {
             name: "auth-store",
             onRehydrateStorage: () => (state) => {
-                if (state) state.setHasHydrated(true);
+                // after rehydrate, mark the store as hydrated if action exists
+                if (state) {
+                    const maybe = state as unknown as { setHasHydrated?: (b: boolean) => void };
+                    maybe.setHasHydrated?.(true);
+                }
             },
         }
     )

@@ -69,10 +69,8 @@ export const TaskService = {
     // SUBTASKS
     //
 
-    async addSubtask(taskId: string, text: string): Promise<Subtask> {
-        return apiPost<Subtask>(`${BASE}/${ensureId(taskId)}/subtasks`, {
-            text: ensureText(text),
-        });
+    async addSubtask(taskParentId: string, subTask: CreateTaskDTO): Promise<Task> {
+        return apiPost<Subtask>(`${BASE}/${ensureId(taskParentId)}/subtasks`,subTask);
     },
 
     async toggleSubtask(

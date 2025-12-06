@@ -8,18 +8,12 @@ export default function TopNav() {
 
     return (
         <nav
-            className=" w-full h-16 flex items-center justify-between px-4 md:px-6
-  bg-gradient-to-r from-[#15345C] to-[#112B4A]
-  backdrop-blur-xl border-b border-white/10 shadow-lg"
+            className="w-full h-16 flex items-center justify-between px-4 md:px-6 bg-gradient-to-r from-[#15345C] to-[#112B4A] backdrop-blur-xl border-b border-white/10 shadow-lg"
         >
             {/* Collapse Sidebar Button */}
             <button
                 onClick={toggleSidebar}
-                className="
-    hidden md:flex
-    p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white shadow-md
-    transition
-  "
+                className="hidden md:flex p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white shadow-md transition"
             >
                 <Menu size={22} />
             </button>

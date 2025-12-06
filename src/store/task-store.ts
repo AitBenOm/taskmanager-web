@@ -1,19 +1,11 @@
 "use client";
 
-import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
-import { TaskService } from "@/services/task.service";
-import {
-    Task,
-    TaskActivity,
-    Subtask,
-    CreateTaskDTO,
-    UpdateTaskDTO,
-    TaskStatus,
-    TaskPriority,
-} from "@/types/task";
+import {create} from "zustand";
+import {TaskService} from "@/services/task.service";
+import {CreateTaskDTO, Task, TaskActivity, TaskPriority, TaskStatus, UpdateTaskDTO,} from "@/types/task";
 
-import { useLoadingStore } from "@/store/loading-store";
+import {useLoadingStore} from "@/store/loading-store";
+import {immer} from "zustand/middleware/immer";
 
 interface TaskStore {
     // ======================
@@ -37,12 +29,12 @@ interface TaskStore {
     deleteTask: (id: string) => Promise<void>;
     assignUser: (taskId: string, userId: string) => Promise<Task>;
 
-    addSubtask: (taskId: string, text: string) => Promise<Subtask>;
+    addSubtask: (taskParentId: string, subTask: CreateTaskDTO) => Promise<Task>;
     toggleSubtask: (
         taskId: string,
         subtaskId: string,
         done: boolean
-    ) => Promise<Subtask>;
+    ) => Promise<Task>;
 
     loadActivity: (taskId: string) => Promise<TaskActivity[]>;
     refreshTaskActivity: (taskId: string) => Promise<void>;
@@ -71,6 +63,101 @@ interface TaskStore {
     tasksArchived: Task[];
 }
 
+function removeTaskFromTree(tasks: Task[], taskId: string): Task[] {
+    const newList = tasks.filter(t => t.id !== taskId).map(t => ({...t}));
+
+    newList.forEach(t => {
+        if (t.subtasks) {
+            t.subtasks = removeTaskFromTree(t.subtasks, taskId);
+        }
+    });
+
+    return newList;
+}
+
+function insertTaskAsSubtask(tasks: Task[], parentId: string, subtask: Task): Task[] {
+    const newList = tasks.map(t => ({...t}));
+
+    function recursiveInsert(list: Task[]): boolean {
+        for (let item of list) {
+            if (item.id === parentId) {
+                if (!item.subtasks) item.subtasks = [];
+                item.subtasks.unshift(subtask);
+                return true;
+            }
+            if (item.subtasks && recursiveInsert(item.subtasks)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    recursiveInsert(newList);
+    return newList;
+}
+
+
+function updateTaskInTree(tasks: Task[], updated: Task): Task[] {
+    const newList = tasks.map(task => ({...task}));
+
+    function recursiveUpdate(list: Task[]): boolean {
+        for (let i = 0; i < list.length; i++) {
+            const t = list[i];
+
+            // MATCH FOUND → UPDATE
+            if (t.id === updated.id) {
+                updated.subtasks = t.subtasks; // keep existing subtasks
+                list[i] = updated;
+                return true;
+            }
+
+            // Go deeper
+            if (t.subtasks && recursiveUpdate(t.subtasks)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    recursiveUpdate(newList);
+    return newList;
+}
+
+function deleteTaskFromTree(tasks: Task[], taskId: string): Task[] {
+    return tasks
+        .filter(t => t.id !== taskId)
+        .map(t => ({
+            ...t,
+            subtasks: t.subtasks ? deleteTaskFromTree(t.subtasks, taskId) : [],
+        }));
+}
+
+
+function buildTaskTree(tasks: Task[]): Task[] {
+    const map = new Map<string, Task>();
+    const roots: Task[] = [];
+
+    // STEP 1 — put all tasks in a map for quick access
+    tasks.forEach(task => {
+        map.set(task.id, {...task, subtasks: []});
+    });
+
+    // STEP 2 — link subtasks to parents
+    map.forEach(task => {
+        if (task.parentId) {
+            const parent = map.get(task.parentId);
+            if (parent) {
+                parent.subtasks!.push(task);
+            }
+        } else {
+            roots.push(task); // top-level task
+        }
+    });
+
+    return roots;
+}
+
+
 export const useTaskStore = create<TaskStore>()(
     immer((set, get) => ({
         // ======================
@@ -93,8 +180,10 @@ export const useTaskStore = create<TaskStore>()(
 
             try {
                 const tasks = await TaskService.getTasks();
+                // Build task tree with subtasks
+                const tree = buildTaskTree(tasks);
                 set((state) => {
-                    state.tasks = tasks;
+                    state.tasks = tree;
                 });
             } finally {
                 loading.setLoading(false);
@@ -135,39 +224,81 @@ export const useTaskStore = create<TaskStore>()(
                 const newTask = await TaskService.createTask(data);
 
                 set((state) => {
-                    state.tasks.unshift(newTask);
+                    const tasks = [...state.tasks];
+
+                    // SUBTASK CASE
+                    if (newTask.parentId) {
+                        const parentIndex = tasks.findIndex(t => t.id === newTask.parentId);
+                        if (parentIndex !== -1) {
+                            if (!tasks[parentIndex].subtasks) {
+                                tasks[parentIndex].subtasks = [];
+                            }
+                            tasks[parentIndex].subtasks!.unshift(newTask);
+                        }
+                    }
+
+                    // NORMAL TASK CASE
+                    else {
+                        tasks.unshift(newTask);
+                    }
+
+                    state.tasks = tasks;
                 });
 
                 return newTask;
             } finally {
                 loading.setLoading(false);
             }
-        },
+        }
+        ,
 
         // ======================
         // UPDATE TASK
         // ======================
-        updateTask: async (id, data) => {
+        updateTask: async (taskId: string, data: UpdateTaskDTO) => {
             const loading = useLoadingStore.getState();
             loading.setLoading(true);
 
             try {
-                const updated = await TaskService.updateTask(id, data);
+                const updatedTask = await TaskService.updateTask(taskId, data);
 
                 set((state) => {
-                    const index = state.tasks.findIndex((t) => t.id === id);
-                    if (index !== -1) state.tasks[index] = updated;
+                    let tasks = [...state.tasks];
 
-                    if (state.activeTask?.id === id) {
-                        state.activeTask = updated;
+                    // CASE A: parentId changed → we MUST move task location
+                    const oldTask = state.tasks.flatMap(t => [t, ...(t.subtasks || [])])
+                        .find(t => t.id === taskId);
+
+                    const parentChanged = oldTask && oldTask.parentId !== updatedTask.parentId;
+
+                    if (parentChanged) {
+                        // 1. Remove from old location
+                        tasks = removeTaskFromTree(tasks, taskId);
+
+                        // 2. NEW parent → move under parent
+                        if (updatedTask.parentId) {
+                            tasks = insertTaskAsSubtask(tasks, updatedTask.parentId, updatedTask);
+                        }
+                        // 3. No parent → becomes root task
+                        else {
+                            tasks.unshift(updatedTask);
+                        }
                     }
+
+                    // CASE B: parentId did NOT change → normal update
+                    else {
+                        tasks = updateTaskInTree(tasks, updatedTask);
+                    }
+
+                    state.tasks = tasks;
                 });
 
-                return updated;
+                return updatedTask;
             } finally {
                 loading.setLoading(false);
             }
-        },
+        }
+        ,
 
         // ======================
         // DELETE TASK
@@ -180,7 +311,7 @@ export const useTaskStore = create<TaskStore>()(
                 await TaskService.deleteTask(id);
 
                 set((state) => {
-                    state.tasks = state.tasks.filter((t) => t.id !== id);
+                    state.tasks = deleteTaskFromTree(state.tasks, id);
                     if (state.activeTask?.id === id) state.activeTask = null;
                 });
             } finally {
@@ -216,12 +347,12 @@ export const useTaskStore = create<TaskStore>()(
         // ======================
         // SUBTASKS
         // ======================
-        addSubtask: async (taskId, text) => {
+        addSubtask: async (taskParentId, subTask: CreateTaskDTO) => {
             const loading = useLoadingStore.getState();
             loading.setLoading(true);
 
             try {
-                const subtask = await TaskService.addSubtask(taskId, text);
+                const subtask = await TaskService.addSubtask(taskParentId, subTask);
 
                 set((state) => {
                     const task = state.tasks.find((t) => t.id === taskId);
@@ -340,13 +471,16 @@ export const useTaskStore = create<TaskStore>()(
         },
 
         getCompletedSubtasksCount: (task) => {
-            return task.subtasks.filter((s) => s.done).length;
+            const list = task.subtasks ?? [];
+            return list.filter((s) => s.status === "DONE").length;
         },
 
         getProgress: (task) => {
-            if (task.subtasks.length === 0) return 0;
-            const done = task.subtasks.filter((s) => s.done).length;
-            return Math.round((done / task.subtasks.length) * 100);
+            const list = task.subtasks ?? [];
+            if (list.length === 0) return 0;
+
+            const done = list.filter((s) => s.status === "DONE").length;
+            return Math.round((done / list.length) * 100);
         },
 
         tasksTodo: [],

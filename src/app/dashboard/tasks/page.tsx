@@ -2,9 +2,9 @@
 
 import {useEffect, useState} from "react";
 import {FlowColumn} from "./components/FlowColumn";
-import {FlowCard} from "./components/FlowCard";
 import FlowTaskModal from "./components/FlowTaskModal";
 import {Button} from "@/components/ui/button";
+import {TaskCard} from "@/app/dashboard/tasks/components/TaskCard";
 
 const TASKS_PER_PAGE = 12;
 
@@ -26,6 +26,7 @@ export default function TasksPage() {
     const [view, setView] = useState<"list" | "kanban">(
         typeof window !== "undefined" && window.innerWidth < 640 ? "list" : "kanban"
     );
+
 
     const [page, setPage] = useState(1);
     const [filterPriority, setFilterPriority] = useState("ALL");
@@ -144,13 +145,11 @@ export default function TasksPage() {
                 {view === "list" && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pr-2 auto-rows-max">
                         {getListTasks().map((task) => (
-                            <FlowCard
+                            <TaskCard
                                 key={task.id}
-                                {...task}
-
+                                task={task}
                                 onClick={() => openModal(task)}
-                            />
-                        ))}
+                            />))}
                     </div>
                 )}
 
@@ -163,7 +162,7 @@ export default function TasksPage() {
                                 key={col}
                                 title={col === "TODO" ? "To Do" : col === "IN_PROGRESS" ? "In Progress" : "Done"}
                                 tasksCount={getColumnTasks(col).length}
-                                avatars={[{ name: "User", avatar: "/avatars/omar.png" }]}
+                                avatars={[{name: "User", avatar: "/avatars/omar.png"}]}
                                 status={col}           // <-- THE FIX
                                 mobileWidth
                             >
@@ -182,12 +181,8 @@ export default function TasksPage() {
                                 </select>
 
                                 {getColumnTasks(col).map((task) => (
-                                    <FlowCard
-                                        key={task.id}
-                                        {...task}
+                                    <TaskCard key={task.id} task={task} onClick={() => openModal(task)}/>
 
-                                        onClick={() => openModal(task)}
-                                    />
                                 ))}
                             </FlowColumn>
                         ))}

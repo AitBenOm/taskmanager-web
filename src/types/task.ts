@@ -1,33 +1,42 @@
 export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE" | "ARCHIVED";
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
-export interface Subtask {
+
+export interface UserMinimal {
     id: string;
-    text: string;
-    done: boolean;
+    fullName: string;
+    avatarUrl?: string | null;
 }
 
 export interface Task {
     id: string;
     title: string;
-    description?: string;
+    description?: string | null;
 
     status: TaskStatus;
     priority: TaskPriority;
 
-    createdAt?: string;
-    updatedAt?: string;
     dueDate?: string | null;
+    createdAt: string;
+    updatedAt: string;
 
     groupId: string;
+
     createdById: string;
     assignedToId?: string | null;
 
+    /** ⭐ SELF RELATION */
     parentId?: string | null;
-    subtasks: Subtask[];
+    subtasks?: Task[];            // recursive
 
-    logs?: TaskActivity[];
+    /** Optional extras from backend */
+    assignedTo?: {
+        id: string;
+        fullName: string;
+        avatarUrl?: string | null;
+    } | null;
 }
+
 
 export interface TaskActivity {
     id: string;
@@ -44,17 +53,46 @@ export interface TaskActivity {
 
 export interface CreateTaskDTO {
     title: string;
-    description?: string;
-    groupId: string;
+    description?: string | null;
     priority?: TaskPriority;
+    status?: TaskStatus;
     dueDate?: string | null;
+    assignedToId?: string | null;
+    createdById?: string | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+
+    groupId: string | null;
+
+    /** ⭐ self relation */
+    parentId?: string | null;
 }
+
 
 export interface UpdateTaskDTO {
     title?: string;
-    description?: string;
-    status?: TaskStatus;
+    description?: string | null;
     priority?: TaskPriority;
+    status?: TaskStatus;
     dueDate?: string | null;
     assignedToId?: string | null;
+
+    /** ⭐ self relation */
+    parentId?: string | null;
 }
+
+export interface QueryTaskDto {
+    groupId?: string;
+    userId?: string;
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    search?: string;
+    dueDate?: string;
+    parentId?: string | null;   // ⭐ for root tasks / subtasks
+    page?: number;
+    limit?: number;
+    sortBy?: "createdAt" | "dueDate" | "priority" | "status";
+    order?: "asc" | "desc";
+}
+
+
