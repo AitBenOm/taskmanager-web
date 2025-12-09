@@ -1,11 +1,11 @@
 "use client";
 
 import {useEffect, useState} from "react";
-import {FlowColumn} from "./components/FlowColumn";
 import {Button} from "@/components/ui/button";
 import {TaskCard} from "@/app/dashboard/tasks/components/TaskCard";
 import TaskInsightPanel from "@/app/dashboard/tasks/components/TaskInsightPanel";
 import {useTaskStore} from "@/store/task-store";
+import {FlowColumn} from "@/app/dashboard/tasks/components/FlowColumn";
 
 const TASKS_PER_PAGE = 12;
 
@@ -117,16 +117,40 @@ export default function TasksPage() {
             {/* BODY CONTAINER (scrollable internally) */}
             <div className="flex-1 overflow-y-auto custom-scroll">
 
-                {/* LIST MODE */}
+                {/* KANBAN MODE */}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pr-2 auto-rows-max">
-                        {getListTasks().map((task) => (
-                            <TaskCard
-                                key={task.id}
-                                task={task}
-                                onClick={() => openModal(task, "edit")}
-                            />))}
-                    </div>
+                <div
+                    className="flex gap-4 overflow-x-auto md:grid md:grid-cols-3 md:overflow-visible pr-2 snap-x snap-mandatory">
+                    {["TODO", "IN_PROGRESS", "DONE"].map((col) => (
+                        <FlowColumn
+                            key={col}
+                            title={col === "TODO" ? "To Do" : col === "IN_PROGRESS" ? "In Progress" : "Done"}
+                            tasksCount={getColumnTasks(col).length}
+                            avatars={[{name: "User", avatar: "/avatars/omar.png"}]}
+                            status={col}           // <-- THE FIX
+                            mobileWidth
+                        >
+                            {/* Sorting */}
+                            <select
+                                value={columnSort[col]}
+                                onChange={(e) => setColumnSort({...columnSort, [col]: e.target.value})}
+                                className="w-full mb-3 rounded-lg border border-gray-300 text-sm py-1 px-2 bg-white shadow-sm"
+                            >
+                                <option value="TITLE_ASC">Title A → Z</option>
+                                <option value="TITLE_DESC">Title Z → A</option>
+                                <option value="DUE_ASC">Due date ↑</option>
+                                <option value="DUE_DESC">Due date ↓</option>
+                                <option value="PRIORITY_ASC">Priority low → high</option>
+                                <option value="PRIORITY_DESC">Priority high → low</option>
+                            </select>
+
+                            {getColumnTasks(col).map((task) => (
+                                <TaskCard key={task.id} task={task} onClick={() => openModal(task, "edit")}/>
+
+                            ))}
+                        </FlowColumn>
+                    ))}
+                </div>
 
 
                 {/* PAGINATION */}

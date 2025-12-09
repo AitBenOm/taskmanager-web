@@ -31,7 +31,7 @@ export default function Sidebar() {
                 { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
                 { name: "My Day", href: "/dashboard/myday", icon: Target },
                 { name: "Tasks", href: "/dashboard/tasks", icon: CheckCircle2 },
-                { name: "Kanban", href: "/dashboard/kanban", icon: KanbanSquare },
+                { name: "Kanban", href: "/dashboard/tasks/kanban", icon: KanbanSquare },
                 { name: "Calendar", href: "/dashboard/calendar", icon: Calendar },
             ],
         },

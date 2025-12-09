@@ -75,8 +75,7 @@ export default function LoginPage() {
 
             {/* LEFT SIDE — MATCHES DASHBOARD STYLE */}
             <div
-                className="flex items-center justify-center p-10 bg-gradient-to-br from-sky-900 via-blue-900 to-slate-900
-          dark:from-slate-900 dark:via-slate-950 dark:to-black
+                className="flex items-center justify-center p-10 bg-gradient-to-br from-sky-900 via-blue-900 to-slate-900 dark:from-slate-900 dark:via-slate-950 dark:to-black
         "
             >
                 <div

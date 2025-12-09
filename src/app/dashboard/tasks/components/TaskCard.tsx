@@ -61,7 +61,7 @@ export function TaskCard({
                             key={s.id}
                             className={cn(
                                 "w-2.5 h-2.5 rounded-full animate-pulse",
-                                s.done ? "bg-green-500" : "bg-gray-400"
+                                s.status === "DONE" ? "bg-green-500" : "bg-gray-400"
                             )}
                         />
                     ))}

@@ -180,6 +180,7 @@ export const useTaskStore = create<TaskStore>()(
 
             try {
                 const tasks = await TaskService.getTasks();
+                if (!tasks) throw new Error("Failed to fetch tasks");
                 // Build task tree with subtasks
                 const tree = buildTaskTree(tasks);
                 set((state) => {
@@ -219,9 +220,10 @@ export const useTaskStore = create<TaskStore>()(
         createTask: async (data: CreateTaskDTO) => {
             const loading = useLoadingStore.getState();
             loading.setLoading(true);
-
+            console.log('Creating task with data:', data);
             try {
                 const newTask = await TaskService.createTask(data);
+                if (!newTask) throw new Error("Failed to create task");
 
                 set((state) => {
                     const tasks = [...state.tasks];
@@ -244,8 +246,12 @@ export const useTaskStore = create<TaskStore>()(
 
                     state.tasks = tasks;
                 });
+                console.log('Creating task with data:', newTask);
 
                 return newTask;
+            } catch (error) {
+                console.error('Error creating task:', error);
+                throw error;
             } finally {
                 loading.setLoading(false);
             }
@@ -261,6 +267,7 @@ export const useTaskStore = create<TaskStore>()(
 
             try {
                 const updatedTask = await TaskService.updateTask(taskId, data);
+                if (!updatedTask) throw new Error("Failed to create task");
 
                 set((state) => {
                     let tasks = [...state.tasks];
@@ -328,6 +335,7 @@ export const useTaskStore = create<TaskStore>()(
 
             try {
                 const updated = await TaskService.assignTask(taskId, userId);
+                if (!updated) throw new Error("Failed to create task");
 
                 set((state) => {
                     const index = state.tasks.findIndex((t) => t.id === taskId);
@@ -353,6 +361,7 @@ export const useTaskStore = create<TaskStore>()(
 
             try {
                 const subtask = await TaskService.addSubtask(taskParentId, subTask);
+                if (!subtask) throw new Error("Failed to create task");
 
                 set((state) => {
                     const task = state.tasks.find((t) => t.id === taskId);

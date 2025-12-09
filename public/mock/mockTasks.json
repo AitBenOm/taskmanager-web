@@ -1,401 +1,128 @@
 [
   {
     "id": "1",
-    "title": "Task 1",
-    "description": "Description for task 1",
-    "status": "TODO",
-    "priority": "LOW",
+    "title": "Prepare Marketing Presentation",
+    "description": "Full preparation for Q4 product launch",
+    "status": "IN_PROGRESS",
+    "priority": "HIGH",
     "due": "2025-12-10 10:00",
+    "parentId": null,
     "subtasks": [
       {
-        "id": "s1",
-        "text": "Draft outline",
-        "done": false
+        "id": "1-1",
+        "title": "Draft outline",
+        "description": "",
+        "status": "TODO",
+        "priority": "MEDIUM",
+        "due": null,
+        "parentId": "1",
+        "subtasks": []
       },
       {
-        "id": "s2",
-        "text": "Review draft",
-        "done": true
+        "id": "1-2",
+        "title": "Review outline with team",
+        "description": "",
+        "status": "IN_PROGRESS",
+        "priority": "LOW",
+        "due": null,
+        "parentId": "1",
+        "subtasks": [
+          {
+            "id": "1-2-1",
+            "title": "Collect feedback from stakeholders",
+            "description": "",
+            "status": "TODO",
+            "priority": "LOW",
+            "due": null,
+            "parentId": "1-2",
+            "subtasks": []
+          }
+        ]
       }
     ]
   },
+
   {
     "id": "2",
-    "title": "Task 2",
-    "description": "Description for task 2",
-    "status": "IN_PROGRESS",
-    "priority": "MEDIUM",
+    "title": "Data Pipeline Redesign",
+    "description": "Refactor legacy ETL into modern Kafka pipelines",
+    "status": "TODO",
+    "priority": "URGENT",
     "due": "2025-12-11 12:30",
+    "parentId": null,
     "subtasks": [
       {
-        "id": "s1",
-        "text": "Collect data",
-        "done": false
+        "id": "2-1",
+        "title": "Collect data requirements",
+        "description": "",
+        "status": "DONE",
+        "priority": "LOW",
+        "due": null,
+        "parentId": "2",
+        "subtasks": []
       },
       {
-        "id": "s2",
-        "text": "Clean dataset",
-        "done": false
+        "id": "2-2",
+        "title": "Design architecture diagram",
+        "description": "",
+        "status": "IN_PROGRESS",
+        "priority": "MEDIUM",
+        "due": null,
+        "parentId": "2",
+        "subtasks": [
+          {
+            "id": "2-2-1",
+            "title": "Define Kafka topics",
+            "description": "",
+            "status": "TODO",
+            "priority": "HIGH",
+            "due": null,
+            "parentId": "2-2",
+            "subtasks": []
+          },
+          {
+            "id": "2-2-2",
+            "title": "Document schema registry rules",
+            "description": "",
+            "status": "TODO",
+            "priority": "LOW",
+            "due": null,
+            "parentId": "2-2",
+            "subtasks": []
+          }
+        ]
       }
     ]
   },
+
   {
     "id": "3",
-    "title": "Task 3",
-    "description": "Description for task 3",
+    "title": "UI Redesign for Dashboard",
+    "description": "Upgrade sidebar, topnav, and task flow preview",
     "status": "DONE",
-    "priority": "HIGH",
+    "priority": "MEDIUM",
     "due": "2025-12-12 09:00",
+    "parentId": null,
     "subtasks": [
       {
-        "id": "s1",
-        "text": "Prepare slides",
-        "done": true
+        "id": "3-1",
+        "title": "Design wireframe",
+        "description": "",
+        "status": "DONE",
+        "priority": "MEDIUM",
+        "due": null,
+        "parentId": "3",
+        "subtasks": []
       },
       {
-        "id": "s2",
-        "text": "Rehearse presentation",
-        "done": true
-      }
-    ]
-  },
-  {
-    "id": "4",
-    "title": "Task 4",
-    "description": "Description for task 4",
-    "status": "TODO",
-    "priority": "URGENT",
-    "due": "2025-12-13 16:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Initial research",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Define scope",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "5",
-    "title": "Task 5",
-    "description": "Description for task 5",
-    "status": "IN_PROGRESS",
-    "priority": "LOW",
-    "due": "2025-12-14 14:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Design UI",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Prototype interactions",
-        "done": true
-      }
-    ]
-  },
-  {
-    "id": "6",
-    "title": "Task 6",
-    "description": "Description for task 6",
-    "status": "DONE",
-    "priority": "MEDIUM",
-    "due": "2025-12-15 18:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Write tests",
-        "done": true
-      },
-      {
-        "id": "s2",
-        "text": "Validate coverage",
-        "done": true
-      }
-    ]
-  },
-  {
-    "id": "7",
-    "title": "Task 7",
-    "description": "Description for task 7",
-    "status": "TODO",
-    "priority": "HIGH",
-    "due": "2025-12-16 09:45",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Brainstorm ideas",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Document plan",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "8",
-    "title": "Task 8",
-    "description": "Description for task 8",
-    "status": "IN_PROGRESS",
-    "priority": "URGENT",
-    "due": "2025-12-17 19:30",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Write report",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Finalize numbers",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "9",
-    "title": "Task 9",
-    "description": "Description for task 9",
-    "status": "DONE",
-    "priority": "LOW",
-    "due": "2025-12-18 20:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Deploy app",
-        "done": true
-      },
-      {
-        "id": "s2",
-        "text": "Smoke test",
-        "done": true
-      }
-    ]
-  },
-  {
-    "id": "10",
-    "title": "Task 10",
-    "description": "Description for task 10",
-    "status": "TODO",
-    "priority": "MEDIUM",
-    "due": "2025-12-19 15:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Investigate bug",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Write fix",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "11",
-    "title": "Task 11",
-    "description": "Description for task 11",
-    "status": "TODO",
-    "priority": "LOW",
-    "due": "2025-12-20 10:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Set up env",
-        "done": true
-      },
-      {
-        "id": "s2",
-        "text": "Configure settings",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "12",
-    "title": "Task 12",
-    "description": "Description for task 12",
-    "status": "IN_PROGRESS",
-    "priority": "MEDIUM",
-    "due": "2025-12-21 12:30",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Refactor module",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Write migration",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "13",
-    "title": "Task 13",
-    "description": "Description for task 13",
-    "status": "DONE",
-    "priority": "HIGH",
-    "due": "2025-12-22 18:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Complete audit",
-        "done": true
-      },
-      {
-        "id": "s2",
-        "text": "Submit report",
-        "done": true
-      }
-    ]
-  },
-  {
-    "id": "14",
-    "title": "Task 14",
-    "description": "Description for task 14",
-    "status": "IN_PROGRESS",
-    "priority": "URGENT",
-    "due": "2025-12-23 11:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Write API docs",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Update schemas",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "15",
-    "title": "Task 15",
-    "description": "Description for task 15",
-    "status": "TODO",
-    "priority": "LOW",
-    "due": "2025-12-24 17:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Collect assets",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Organize folder",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "16",
-    "title": "Task 16",
-    "description": "Description for task 16",
-    "status": "TODO",
-    "priority": "HIGH",
-    "due": "2025-12-25 10:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Define API routes",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Create DTOs",
-        "done": true
-      }
-    ]
-  },
-  {
-    "id": "17",
-    "title": "Task 17",
-    "description": "Description for task 17",
-    "status": "IN_PROGRESS",
-    "priority": "LOW",
-    "due": "2025-12-26 12:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Debug error",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Write test case",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "18",
-    "title": "Task 18",
-    "description": "Description for task 18",
-    "status": "DONE",
-    "priority": "MEDIUM",
-    "due": "2025-12-27 16:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Compile data",
-        "done": true
-      },
-      {
-        "id": "s2",
-        "text": "Prepare summary",
-        "done": true
-      }
-    ]
-  },
-  {
-    "id": "19",
-    "title": "Task 19",
-    "description": "Description for task 19",
-    "status": "TODO",
-    "priority": "URGENT",
-    "due": "2025-12-28 18:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Hotfix crash",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Deploy patch",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "20",
-    "title": "Task 20",
-    "description": "Description for task 20",
-    "status": "IN_PROGRESS",
-    "priority": "LOW",
-    "due": "2025-12-29 20:00",
-    "subtasks": [
-      {
-        "id": "s1",
-        "text": "Review PR",
-        "done": false
-      },
-      {
-        "id": "s2",
-        "text": "Fix comments",
-        "done": false
+        "id": "3-2",
+        "title": "Implement animations",
+        "description": "",
+        "status": "DONE",
+        "priority": "HIGH",
+        "due": null,
+        "parentId": "3",
+        "subtasks": []
       }
     ]
   }
