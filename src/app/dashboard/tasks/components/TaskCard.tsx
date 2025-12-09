@@ -5,6 +5,9 @@ import {useTaskStore} from "@/store/task-store";
 import {User} from "lucide-react";
 import {Task} from "@/types/task";
 import {useCallback} from "react";
+import {useSortable} from "@dnd-kit/sortable";
+import {CSS} from "@dnd-kit/utilities";
+
 
 // Priority → Premium Colors
 const priorityColors: Record<string, string> = {
@@ -29,6 +32,7 @@ export function TaskCard({
     task: Task;
     onClick?: () => void;
 }) {
+    if (!task) return null;
     const getProgress = useTaskStore((s) => s.getProgress);
     const getCompleted = useTaskStore((s) => s.getCompletedSubtasksCount);
 
@@ -42,88 +46,105 @@ export function TaskCard({
         if (onClick) return onClick();
     }, [onClick]);
 
+    const {attributes, listeners, setNodeRef, transform, transition} =
+        useSortable({id: task.id});
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
     return (
         <div
-            onClick={handleClick}
-            className={cn(
-                "relative w-full cursor-pointer rounded-xl p-4 transition-all duration-200",
-                "border shadow-md backdrop-blur-xl",
-                "hover:shadow-xl hover:scale-[1.02]",
-                // Gradient background from priority
-                `bg-gradient-to-br ${priorityColors[task.priority] ?? priorityColors.MEDIUM}`
-            )}
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            onClick={onClick}
+            className="YOUR EXISTING CLASSES"
         >
-            {/* Subtask Dots (Top-right) */}
-            {subtasks.length > 0 && (
-                <div className="absolute top-3 right-3 flex gap-1">
-                    {subtasks.slice(0, 5).map((s) => (
-                        <div
-                            key={s.id}
-                            className={cn(
-                                "w-2.5 h-2.5 rounded-full animate-pulse",
-                                s.status === "DONE" ? "bg-green-500" : "bg-gray-400"
-                            )}
-                        />
-                    ))}
+            <div
+                onClick={handleClick}
+                className={cn(
+                    "relative w-full cursor-pointer rounded-xl p-4 transition-all duration-200",
+                    "border shadow-md backdrop-blur-xl",
+                    "hover:shadow-xl hover:scale-[1.02]",
+                    // Gradient background from priority
+                    `bg-gradient-to-br ${priorityColors[task.priority] ?? priorityColors.MEDIUM}`
+                )}
+            >
+                {/* Subtask Dots (Top-right) */}
+                {subtasks.length > 0 && (
+                    <div className="absolute top-3 right-3 flex gap-1">
+                        {subtasks.slice(0, 5).map((s) => (
+                            <div
+                                key={s.id}
+                                className={cn(
+                                    "w-2.5 h-2.5 rounded-full animate-pulse",
+                                    s.status === "DONE" ? "bg-green-500" : "bg-gray-400"
+                                )}
+                            />
+                        ))}
 
-                    {/* “+N” if more subtasks */}
-                    {subtasks.length > 5 && (
-                        <span className="text-[10px] text-gray-600 font-medium">
+                        {/* “+N” if more subtasks */}
+                        {subtasks.length > 5 && (
+                            <span className="text-[10px] text-gray-600 font-medium">
               +{subtasks.length - 5}
             </span>
-                    )}
-                </div>
-            )}
+                        )}
+                    </div>
+                )}
 
-            {/* Priority Badge */}
-            <div className="mb-2">
+                {/* Priority Badge */}
+                <div className="mb-2">
         <span
             className="px-2 py-1 text-xs font-semibold rounded-lg bg-white/30 backdrop-blur-lg border border-white/30 shadow-md">
           {task.priority}
         </span>
-            </div>
+                </div>
 
-            {/* Title */}
-            <h3 className="text-gray-900 font-semibold text-base mb-1">{task.title}</h3>
+                {/* Title */}
+                <h3 className="text-gray-900 font-semibold text-base mb-1">{task.title}</h3>
 
-            {/* Optional description preview */}
-            {task.description && (
-                <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                    {task.description}
-                </p>
-            )}
+                {/* Optional description preview */}
+                {task.description && (
+                    <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+                        {task.description}
+                    </p>
+                )}
 
-            {/* Footer */}
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/30">
-                {/* Status Badge */}
-                <span
-                    className={cn(
-                        "px-2 py-1 text-xs rounded-md font-medium",
-                        statusColors[task.status]
-                    )}
-                >
+                {/* Footer */}
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/30">
+                    {/* Status Badge */}
+                    <span
+                        className={cn(
+                            "px-2 py-1 text-xs rounded-md font-medium",
+                            statusColors[task.status]
+                        )}
+                    >
           {task.status.replace("_", " ")}
         </span>
 
-                {/* Progress */}
-                {subtasks.length > 0 && (
-                    <span className="text-xs text-gray-700 font-medium">
+                    {/* Progress */}
+                    {subtasks.length > 0 && (
+                        <span className="text-xs text-gray-700 font-medium">
             {completed}/{subtasks.length}
           </span>
-                )}
-
-                {/* Avatar */}
-                <div
-                    className="w-7 h-7 bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50 shadow-sm">
-                    {task.assignedTo ? (
-                        <img
-                            src={task.assignedTo.avatarUrl ?? "/avatars/default.png"}
-                            alt="avatar"
-                            className="w-7 h-7 rounded-full"
-                        />
-                    ) : (
-                        <User className="w-4 h-4 text-gray-700"/>
                     )}
+
+                    {/* Avatar */}
+                    <div
+                        className="w-7 h-7 bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50 shadow-sm">
+                        {task.assignedTo ? (
+                            <img
+                                src={task.assignedTo.avatarUrl ?? "/avatars/default.png"}
+                                alt="avatar"
+                                className="w-7 h-7 rounded-full"
+                            />
+                        ) : (
+                            <User className="w-4 h-4 text-gray-700"/>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

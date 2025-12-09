@@ -1,203 +1,186 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import {Button} from "@/components/ui/button";
-import {TaskCard} from "@/app/dashboard/tasks/components/TaskCard";
-import TaskInsightPanel from "@/app/dashboard/tasks/components/TaskInsightPanel";
-import {useTaskStore} from "@/store/task-store";
+import { useEffect, useState } from "react";
+import {
+    DndContext,
+    DragOverlay,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from "@dnd-kit/core";
+import {
+    SortableContext,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+
+import { Button } from "@/components/ui/button";
+import { useTaskStore } from "@/store/task-store";
 import {FlowColumn} from "@/app/dashboard/tasks/components/FlowColumn";
-
-const TASKS_PER_PAGE = 12;
-
-const sortMethods: any = {
-    TITLE_ASC: (a: any, b: any) => a.title.localeCompare(b.title),
-    TITLE_DESC: (a: any, b: any) => b.title.localeCompare(a.title),
-    DUE_ASC: (a: any, b: any) => new Date(a.due).getTime() - new Date(b.due).getTime(),
-    DUE_DESC: (a: any, b: any) => new Date(b.due).getTime() - new Date(a.due).getTime(),
-    PRIORITY_ASC: (a: any, b: any) =>
-        ["LOW", "MEDIUM", "HIGH", "URGENT"].indexOf(a.priority) -
-        ["LOW", "MEDIUM", "HIGH", "URGENT"].indexOf(b.priority),
-    PRIORITY_DESC: (a: any, b: any) =>
-        ["LOW", "MEDIUM", "HIGH", "URGENT"].indexOf(b.priority) -
-        ["LOW", "MEDIUM", "HIGH", "URGENT"].indexOf(a.priority),
-};
+import DroppableColumn from "@/app/dashboard/tasks/components/DroppableColumn";
+import DropIndicator from "@/app/dashboard/tasks/components/DropIndicator";
+import SortableTaskCard from "@/app/dashboard/tasks/components/SortableTaskCard";
+import DragOverlayPortal from "@/app/dashboard/tasks/components/DragOverlayPortal";
+import DragOverlayCard from "@/app/dashboard/tasks/components/DragOverlayCard";
+import TaskInsightPanel from "@/app/dashboard/tasks/components/TaskInsightPanel";
 
 export default function TasksPage() {
-    const [view, setView] = useState<"list" | "kanban">(
-        typeof window !== "undefined" && window.innerWidth < 640 ? "list" : "kanban"
-    );
-    const [page, setPage] = useState(1);
-
-
-    const [filterPriority, setFilterPriority] = useState("ALL");
-    const [selectedTask, setSelectedTask] = useState<any | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [selectedTask, setSelectedTask] = useState(null);
+    const [activeTask, setActiveTask] = useState(null);
+    const [overItem, setOverItem] = useState(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
+    );
 
     const tasks = useTaskStore((s => s.tasks));
     const fetchTasks = useTaskStore((s => s.fetchTasks));
 
+    const updateTask = useTaskStore((s) => s.updateTask);
 
-    const [columnSort, setColumnSort] = useState({
-        TODO: "TITLE_ASC",
-        IN_PROGRESS: "TITLE_ASC",
-        DONE: "TITLE_ASC",
-    });
+    useEffect(() => void fetchTasks(), []);
 
-    useEffect(() => {
-        const newtasks = fetchTasks();
-        console.log("Fetched tasks:", newtasks);
-    }, []);
-
-    const filterTasks = (list: any[]) =>
-        list.filter((t) => filterPriority === "ALL" || t.priority === filterPriority);
-
-    const totalPages = Math.ceil(filterTasks(tasks).length / TASKS_PER_PAGE);
-
-    const paginate = (list: any[]) => {
-        const start = (page - 1) * TASKS_PER_PAGE;
-        return list.slice(start, start + TASKS_PER_PAGE);
+    const openModal = (task) => {
+        setSelectedTask(task);
+        setModalOpen(true);
     };
 
-    const getListTasks = () => paginate(filterTasks(tasks));
+    const getColumnTasks = (status) =>
+        tasks.filter((t) => t.status === status);
 
-    const getColumnTasks = (status: string) => {
-        const list = tasks.filter((t) => t.status === status);
-        const filtered = filterTasks(list);
-        const sorted = filtered.sort(sortMethods[columnSort[status]]);
-        return paginate(sorted);
-    };
+    function handleDragMove(event) {
+        setOverItem(event.over);
+    }
 
-    const openModal = (task: any) => {
-            setSelectedTask(task);
-            setModalOpen(true);
+    function handleDragEnd(event) {
+        setOverItem(null);
+
+        const { active, over } = event;
+        if (!over) {
+            setActiveTask(null);
+            return;
         }
-    ;
-    const priorityColors = {
-        LOW: "border-blue-300 bg-blue-50",
-        MEDIUM: "border-yellow-300 bg-yellow-50",
-        HIGH: "border-orange-300 bg-orange-50",
-        URGENT: "border-red-300 bg-red-50",
+
+        const activeId = active.id;
+        const overId = over.id;
+
+        const draggedTask = tasks.find((t) => t.id === activeId);
+        if (!draggedTask) return;
+
+        let newStatus = overId;
+
+        // Dropping on a task → adopt that task's column
+        const overTask = tasks.find((t) => t.id === overId);
+        if (overTask) newStatus = overTask.status;
+
+        // Only update if changed
+        if (draggedTask.status !== newStatus) {
+            updateTask(draggedTask.id, { status: newStatus });
+        }
+
+        setActiveTask(null);
+    }
+
+    const columnColors = {
+        TODO: "bg-blue-50/60",
+        IN_PROGRESS: "bg-yellow-50/60",
+        DONE: "bg-green-50/60",
     };
 
-    const currentGroupId = "add8834b-022d-470c-b1b5-3b5928872787"; // TEMP for now
     return (
         <main className="flex flex-col h-full space-y-6">
 
             {/* HEADER */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold">Tasks</h1>
 
-                <div className="flex items-center gap-3">
-
-
-                    {/* Filter */}
-                    <select
-                        value={filterPriority}
-                        onChange={(e) => {
-                            setFilterPriority(e.target.value);
-                            setPage(1);
-                        }}
-                        className="bg-white border border-gray-300 rounded-lg px-3 py-2 shadow-sm"
-                    >
-                        {["ALL", "LOW", "MEDIUM", "HIGH", "URGENT"].map((p) => (
-                            <option key={p} value={p}>
-                                Priority: {p}
-                            </option>
-                        ))}
-                    </select>
-
-                    <Button className="rounded-full px-5 h-10 bg-blue-600 hover:bg-blue-700 text-white"
-                            onClick={() => openModal(null, "create")}
-                    >
-                        + New Task
-                    </Button>
-                </div>
+                <Button
+                    onClick={() => openModal(null)}
+                    className="rounded-full px-5 h-10 bg-blue-600 text-white"
+                >
+                    + New Task
+                </Button>
             </div>
 
-            {/* BODY CONTAINER (scrollable internally) */}
-            <div className="flex-1 overflow-y-auto custom-scroll">
+            {/* BOARD */}
+            <DndContext
+                sensors={sensors}
+                onDragStart={(event) => {
+                    const task = tasks.find((t) => t.id === event.active.id);
+                    setActiveTask(task);
+                }}
+                onDragMove={handleDragMove}
+                onDragEnd={handleDragEnd}
+                onDragCancel={() => setActiveTask(null)}
+            >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-180px)] overflow-hidden">
 
-                {/* KANBAN MODE */}
-
-                <div
-                    className="flex gap-4 overflow-x-auto md:grid md:grid-cols-3 md:overflow-visible pr-2 snap-x snap-mandatory">
                     {["TODO", "IN_PROGRESS", "DONE"].map((col) => (
-                        <FlowColumn
-                            key={col}
-                            title={col === "TODO" ? "To Do" : col === "IN_PROGRESS" ? "In Progress" : "Done"}
-                            tasksCount={getColumnTasks(col).length}
-                            avatars={[{name: "User", avatar: "/avatars/omar.png"}]}
-                            status={col}           // <-- THE FIX
-                            mobileWidth
-                        >
-                            {/* Sorting */}
-                            <select
-                                value={columnSort[col]}
-                                onChange={(e) => setColumnSort({...columnSort, [col]: e.target.value})}
-                                className="w-full mb-3 rounded-lg border border-gray-300 text-sm py-1 px-2 bg-white shadow-sm"
+                        <div key={col} className="flex flex-col h-full overflow-hidden">
+
+                            <FlowColumn
+                                title={
+                                    col === "TODO"
+                                        ? "To Do"
+                                        : col === "IN_PROGRESS"
+                                            ? "In Progress"
+                                            : "Done"
+                                }
+                                tasksCount={getColumnTasks(col).length}
+                                status={col}
+                            />
+
+                            <SortableContext
+                                id={col}
+                                items={getColumnTasks(col).map((t) => t.id)}
+                                strategy={verticalListSortingStrategy}
                             >
-                                <option value="TITLE_ASC">Title A → Z</option>
-                                <option value="TITLE_DESC">Title Z → A</option>
-                                <option value="DUE_ASC">Due date ↑</option>
-                                <option value="DUE_DESC">Due date ↓</option>
-                                <option value="PRIORITY_ASC">Priority low → high</option>
-                                <option value="PRIORITY_DESC">Priority high → low</option>
-                            </select>
+                                <DroppableColumn id={col} className={columnColors[col]}>
+                                    <div className="flex flex-col gap-4 w-full">
 
-                            {getColumnTasks(col).map((task) => (
-                                <TaskCard key={task.id} task={task} onClick={() => openModal(task, "edit")}/>
+                                        {getColumnTasks(col).map((task) => (
+                                            <div key={task.id}>
+                                                {/* Drop Indicator Above */}
+                                                {overItem?.id === task.id &&
+                                                    <DropIndicator
+                                                        active={activeTask}
+                                                        over={overItem}
+                                                    />}
 
-                            ))}
-                        </FlowColumn>
+                                                <SortableTaskCard
+                                                    task={task}
+                                                    onClick={() => openModal(task)}
+                                                />
+                                            </div>
+                                        ))}
+
+                                        {/* Column empty → drop zone */}
+                                        {getColumnTasks(col).length === 0 && (
+                                            <div className="text-center text-gray-400 p-6 border border-dashed rounded-xl">
+                                                Drop tasks here
+                                            </div>
+                                        )}
+                                    </div>
+                                </DroppableColumn>
+                            </SortableContext>
+                        </div>
                     ))}
+
                 </div>
 
+                {/* DRAG OVERLAY */}
+                <DragOverlayPortal>
+                    <DragOverlay>
+                        {activeTask ? <DragOverlayCard task={activeTask} /> : null}
+                    </DragOverlay>
+                </DragOverlayPortal>
+            </DndContext>
 
-                {/* PAGINATION */}
-                {totalPages > 1 && (
-                    <div className="flex justify-center mt-6 gap-3 items-center pb-6">
-                        <button
-                            disabled={page === 1}
-                            onClick={() => setPage(page - 1)}
-                            className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-100 disabled:opacity-40"
-                        >
-                            Previous
-                        </button>
-
-                        <div className="flex gap-2">
-                            {Array.from({length: totalPages}, (_, i) => i + 1).map((num) => (
-                                <button
-                                    key={num}
-                                    onClick={() => setPage(num)}
-                                    className={`px-3 py-2 rounded-lg border text-sm ${
-                                        page === num
-                                            ? "bg-blue-600 text-white border-blue-700"
-                                            : "bg-white border-gray-300 hover:bg-gray-100"
-                                    }`}
-                                >
-                                    {num}
-                                </button>
-                            ))}
-                        </div>
-
-                        <button
-                            disabled={page === totalPages}
-                            onClick={() => setPage(page + 1)}
-                            className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-100 disabled:opacity-40"
-                        >
-                            Next
-                        </button>
-                    </div>
-                )}
-            </div>
             <TaskInsightPanel
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
                 task={selectedTask}
-                groupId={currentGroupId} // mock group until real ones
-                users={[{id: "u1", name: "Omar", avatar: "/avatars/omar.png"}]} // mock user until real ones
             />
-
         </main>
     );
 }
