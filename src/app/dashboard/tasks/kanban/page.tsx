@@ -1,20 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-    DndContext,
-    DragOverlay,
-    PointerSensor,
-    useSensor,
-    useSensors,
-} from "@dnd-kit/core";
-import {
-    SortableContext,
-    verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import {useEffect, useState} from "react";
+import {DndContext, DragOverlay, PointerSensor, useSensor, useSensors,} from "@dnd-kit/core";
+import {SortableContext, verticalListSortingStrategy,} from "@dnd-kit/sortable";
 
-import { Button } from "@/components/ui/button";
-import { useTaskStore } from "@/store/task-store";
+import {Button} from "@/components/ui/button";
+import {useTaskStore} from "@/store/task-store";
 import {FlowColumn} from "@/app/dashboard/tasks/components/FlowColumn";
 import DroppableColumn from "@/app/dashboard/tasks/components/DroppableColumn";
 import DropIndicator from "@/app/dashboard/tasks/components/DropIndicator";
@@ -22,6 +13,7 @@ import SortableTaskCard from "@/app/dashboard/tasks/components/SortableTaskCard"
 import DragOverlayPortal from "@/app/dashboard/tasks/components/DragOverlayPortal";
 import DragOverlayCard from "@/app/dashboard/tasks/components/DragOverlayCard";
 import TaskInsightPanel from "@/app/dashboard/tasks/components/TaskInsightPanel";
+import {useAuthStore} from "@/store/auth.store";
 
 export default function TasksPage() {
     const [modalOpen, setModalOpen] = useState(false);
@@ -29,14 +21,18 @@ export default function TasksPage() {
     const [activeTask, setActiveTask] = useState(null);
     const [overItem, setOverItem] = useState(null);
 
-    const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
-    );
-
-    const tasks = useTaskStore((s => s.tasks));
     const fetchTasks = useTaskStore((s => s.fetchTasks));
-
+    const user = useAuthStore((s) => s.user);
     const updateTask = useTaskStore((s) => s.updateTask);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {activationConstraint: {distance: 4}})
+    );
+    const originalTasks = useTaskStore((s => s.tasks));
+    const tasks = originalTasks.filter(t => {
+        console.log("Filtering task:", t, "for user:", user);
+        return t.createdById === user?.id || t?.assignedToId === (user?.id);
+    });
 
     useEffect(() => void fetchTasks(), []);
 
@@ -55,7 +51,7 @@ export default function TasksPage() {
     function handleDragEnd(event) {
         setOverItem(null);
 
-        const { active, over } = event;
+        const {active, over} = event;
         if (!over) {
             setActiveTask(null);
             return;
@@ -75,11 +71,13 @@ export default function TasksPage() {
 
         // Only update if changed
         if (draggedTask.status !== newStatus) {
-            updateTask(draggedTask.id, { status: newStatus });
+            updateTask(draggedTask.id, {status: newStatus});
         }
 
         setActiveTask(null);
     }
+
+    const currentGroupId = "add8834b-022d-470c-b1b5-3b5928872787"; // TEMP for now
 
     const columnColors = {
         TODO: "bg-blue-50/60",
@@ -156,7 +154,8 @@ export default function TasksPage() {
 
                                         {/* Column empty → drop zone */}
                                         {getColumnTasks(col).length === 0 && (
-                                            <div className="text-center text-gray-400 p-6 border border-dashed rounded-xl">
+                                            <div
+                                                className="text-center text-gray-400 p-6 border border-dashed rounded-xl">
                                                 Drop tasks here
                                             </div>
                                         )}
@@ -171,7 +170,7 @@ export default function TasksPage() {
                 {/* DRAG OVERLAY */}
                 <DragOverlayPortal>
                     <DragOverlay>
-                        {activeTask ? <DragOverlayCard task={activeTask} /> : null}
+                        {activeTask ? <DragOverlayCard task={activeTask}/> : null}
                     </DragOverlay>
                 </DragOverlayPortal>
             </DndContext>
@@ -179,8 +178,8 @@ export default function TasksPage() {
             <TaskInsightPanel
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
-                task={selectedTask}
-            />
+                taskId={selectedTask?.id}
+                groupId={currentGroupId}/>
         </main>
     );
 }

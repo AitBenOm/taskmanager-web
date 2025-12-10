@@ -6,6 +6,7 @@ import {Button} from "@/components/ui/button";
 import {TaskCard} from "@/app/dashboard/tasks/components/TaskCard";
 import TaskInsightPanel from "@/app/dashboard/tasks/components/TaskInsightPanel";
 import {useTaskStore} from "@/store/task-store";
+import {useAuthStore} from "@/store/auth.store";
 
 const TASKS_PER_PAGE = 12;
 
@@ -32,9 +33,13 @@ export default function TasksPage() {
     const [filterPriority, setFilterPriority] = useState("ALL");
     const [selectedTask, setSelectedTask] = useState<any | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const user = useAuthStore((s) => s.user);
 
-    const tasks = useTaskStore((s => s.tasks));
-    const fetchTasks = useTaskStore((s => s.fetchTasks));
+    const originalTasks = useTaskStore((s => s.tasks));
+    const tasks = originalTasks.filter(t => {
+        console.log("Filtering task:", t, "for user:", user);
+        return t.createdById === user?.id || t?.assignedToId === (user?.id);
+    });    const fetchTasks = useTaskStore((s => s.fetchTasks));
 
 
     const [columnSort, setColumnSort] = useState({

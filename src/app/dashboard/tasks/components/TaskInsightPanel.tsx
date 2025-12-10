@@ -10,23 +10,28 @@ import {useAuthStore} from "@/store/auth.store";
 export default function TaskInsightPanel({
                                              open,
                                              onClose,
-                                             task,
+                                             taskId,
                                              groupId,
                                          }: any) {
-    const isNew = !task;
+    const isNew = !taskId;
 
     const [newSubtask, setNewSubtask] = useState("");
     const createTask = useTaskStore((s) => s.createTask);
     const updateTask = useTaskStore((s) => s.updateTask);
     const deleteTask = useTaskStore((s) => s.deleteTask);
+    const fetchTasks = useTaskStore((s) => s.fetchTasks);
     const user = useAuthStore((s) => s.user);
+    const task = useTaskStore((s) => s.tasks.find((t) => t.id === taskId));
+
 
     const [localTitle, setLocalTitle] = useState("");
     const [localDescription, setLocalDescription] = useState("");
     const [localPriority, setLocalPriority] = useState("MEDIUM");
+    const [localSubTaskPriority, setLocalSubTaskPriority] = useState(null);
     const [localStatus, setLocalStatus] = useState("TODO");
     const [localDueDate, setLocalDueDate] = useState(null);
-
+    const [editingSubtaskId, setEditingSubtaskId] = useState(null);
+    const [editingSubtaskTitle, setEditingSubtaskTitle] = useState("");
     const [localAssignedId, setLocalAssignedId] = useState(null);
 
     const handleCreateTask = async () => {
@@ -47,28 +52,25 @@ export default function TaskInsightPanel({
 
         const newStatus = subtask.status === "DONE" ? "TODO" : "DONE";
         await updateTask(subtask.id, {status: newStatus});
+        fetchTasks();
 
     };
     const handleAddSubtask = async (taskId: string) => {
-        console.log("Adding subtask:", newSubtask);
-        if (isNew) return;
         if (!newSubtask.trim()) return;
-
         await createTask({
             title: newSubtask,
-            parentId: taskId,
-            status: "TODO",
-            priority: "MEDIUM",
-            assignedToId: user?.id,
             description: "",
+            priority: localSubTaskPriority,
+            status: "TODO",
+            parentId: taskId,
             groupId: groupId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdById: user?.id,
+            assignedToId: null,
         });
 
-        setNewSubtask(""); // clear the input
+        setNewSubtask("");
+    };
 
-    }
     const handleSaveTask = async () => {
 
         console.log("user:", user);
@@ -88,6 +90,20 @@ export default function TaskInsightPanel({
         onClose(); // close side panel
 
 
+    };
+    const saveEditingSubtask = async (st) => {
+        if (!editingSubtaskTitle.trim()) {
+            setEditingSubtaskId(null);
+            return;
+        }
+
+        await updateTask(st.id, {title: editingSubtaskTitle});
+        setEditingSubtaskId(null);
+    };
+
+    const startEditingSubtask = (st) => {
+        setEditingSubtaskId(st.id);
+        setEditingSubtaskTitle(st.title);
     };
 
     useEffect(() => {
@@ -288,6 +304,32 @@ from-[#142f54]/75
                                 </button>
                             </div>
 
+                            { (newSubtask) && (
+                            <div className="flex items-center justify-between mb-2">
+                                {/* PRIORITY SECTION (below Status) */}
+                                <section>
+                                    <h3 className="text-sm font-semibold text-white/70 mb-1">Priority</h3>
+
+
+                                    <div className="flex flex-wrap gap-2">
+                                        {["LOW", "MEDIUM", "HIGH", "URGENT"].map((p) => (
+                                            <button
+                                                key={p}
+                                                onClick={() => setLocalSubTaskPriority(p)}
+                                                className={`
+                        px-3 py-1 rounded-lg text-xs font-semibold
+                        bg-white/10 border border-white/20
+                        hover:bg-white/20 transition
+                        ${localSubTaskPriority === p ? "bg-white/20 border-pink-300 text-pink-200" : "text-white/70"}
+                    `}
+                                            >
+                                                {p}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </section>
+                            </div>
+                            )}
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className="text-sm font-semibold text-white/70">Subtasks</h3>
 
@@ -321,20 +363,43 @@ from-[#142f54]/75
                                         />
 
                                         {/* Title */}
-                                        <span
-                                            className={st.status === "DONE"
-                                                ? "line-through text-white/40"
-                                                : "text-white"
-                                            }
-                                        >
-            {st.title}
-        </span>
+                                        {editingSubtaskId === st.id ? (
+                                            <input
+                                                autoFocus
+                                                className="bg-white/10 text-white p-1 px-2 rounded outline-none border border-white/20"
+                                                value={editingSubtaskTitle}
+                                                onChange={(e) => setEditingSubtaskTitle(e.target.value)}
+                                                onBlur={() => saveEditingSubtask(st)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") saveEditingSubtask(st);
+                                                    if (e.key === "Escape") setEditingSubtaskId(null);
+                                                }}
+                                            />
+                                        ) : (
+                                            <span
+                                                className={
+                                                    st.status === "DONE"
+                                                        ? "line-through text-white/40"
+                                                        : "text-white cursor-pointer"
+                                                }
+                                                onClick={() => startEditingSubtask(st)}
+                                            >
+        {st.title}
+    </span>
+                                        )}
 
                                         {/* Priority badge */}
                                         <span
                                             className="ml-auto text-xs px-2 py-1 rounded-md bg-white/10 border border-white/10 text-white/60">
             {st.priority}
         </span>
+                                        <button
+                                            onClick={() => deleteTask(st.id)}
+                                            className="text-red-300 hover:text-red-500 text-xs px-2 py-1"
+                                        >
+                                            Delete
+                                        </button>
+
                                     </div>
                                 ))}
 
