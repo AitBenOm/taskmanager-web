@@ -1,0 +1,129 @@
+[
+  {
+    "id": "1",
+    "title": "Prepare Marketing Presentation",
+    "description": "Full preparation for Q4 product launch",
+    "status": "IN_PROGRESS",
+    "priority": "HIGH",
+    "due": "2025-12-10 10:00",
+    "parentId": null,
+    "subtasks": [
+      {
+        "id": "1-1",
+        "title": "Draft outline",
+        "description": "",
+        "status": "TODO",
+        "priority": "MEDIUM",
+        "due": null,
+        "parentId": "1",
+        "subtasks": []
+      },
+      {
+        "id": "1-2",
+        "title": "Review outline with team",
+        "description": "",
+        "status": "IN_PROGRESS",
+        "priority": "LOW",
+        "due": null,
+        "parentId": "1",
+        "subtasks": [
+          {
+            "id": "1-2-1",
+            "title": "Collect feedback from stakeholders",
+            "description": "",
+            "status": "TODO",
+            "priority": "LOW",
+            "due": null,
+            "parentId": "1-2",
+            "subtasks": []
+          }
+        ]
+      }
+    ]
+  },
+
+  {
+    "id": "2",
+    "title": "Data Pipeline Redesign",
+    "description": "Refactor legacy ETL into modern Kafka pipelines",
+    "status": "TODO",
+    "priority": "URGENT",
+    "due": "2025-12-11 12:30",
+    "parentId": null,
+    "subtasks": [
+      {
+        "id": "2-1",
+        "title": "Collect data requirements",
+        "description": "",
+        "status": "DONE",
+        "priority": "LOW",
+        "due": null,
+        "parentId": "2",
+        "subtasks": []
+      },
+      {
+        "id": "2-2",
+        "title": "Design architecture diagram",
+        "description": "",
+        "status": "IN_PROGRESS",
+        "priority": "MEDIUM",
+        "due": null,
+        "parentId": "2",
+        "subtasks": [
+          {
+            "id": "2-2-1",
+            "title": "Define Kafka topics",
+            "description": "",
+            "status": "TODO",
+            "priority": "HIGH",
+            "due": null,
+            "parentId": "2-2",
+            "subtasks": []
+          },
+          {
+            "id": "2-2-2",
+            "title": "Document schema registry rules",
+            "description": "",
+            "status": "TODO",
+            "priority": "LOW",
+            "due": null,
+            "parentId": "2-2",
+            "subtasks": []
+          }
+        ]
+      }
+    ]
+  },
+
+  {
+    "id": "3",
+    "title": "UI Redesign for Dashboard",
+    "description": "Upgrade sidebar, topnav, and task flow preview",
+    "status": "DONE",
+    "priority": "MEDIUM",
+    "due": "2025-12-12 09:00",
+    "parentId": null,
+    "subtasks": [
+      {
+        "id": "3-1",
+        "title": "Design wireframe",
+        "description": "",
+        "status": "DONE",
+        "priority": "MEDIUM",
+        "due": null,
+        "parentId": "3",
+        "subtasks": []
+      },
+      {
+        "id": "3-2",
+        "title": "Implement animations",
+        "description": "",
+        "status": "DONE",
+        "priority": "HIGH",
+        "due": null,
+        "parentId": "3",
+        "subtasks": []
+      }
+    ]
+  }
+]

@@ -1,38 +1,37 @@
 "use client";
 
 import { useState } from "react";
+import Sidebar from "@/app/dashboard/components/sidebar";
+import TopNav from "@/app/dashboard/components/top-nav";
+import BottomNav from "@/app/dashboard/components/BottomNav";
 
-
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import {Sidebar} from "@/components/global/sidebar";
-import {TopNav} from "@/components/global/top-nav";
-
-export default function DashboardLayout({
-                                            children,
-                                        }: {
-    children: React.ReactNode;
-}) {
-    const [mobileOpen, setMobileOpen] = useState(false);
+export default function DashboardLayout({ children }) {
+    const [collapsed, setCollapsed] = useState(false);
 
     return (
-        <div className="flex min-h-screen w-full bg-[#F5F7FA]">
+        <div className="flex w-full h-screen overflow-hidden">
 
             {/* DESKTOP SIDEBAR */}
-            <aside className="hidden md:block">
-                <Sidebar />
-            </aside>
+            <div className="hidden md:block">
+                <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+            </div>
 
-            {/* MOBILE SIDEBAR (Drawer) */}
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                <SheetContent side="left" className="w-64 p-0">
-                    <Sidebar />
-                </SheetContent>
-            </Sheet>
+            {/* MAIN AREA */}
+            <div className="flex-1 h-full flex flex-col overflow-hidden">
 
-            {/* MAIN CONTENT */}
-            <div className="flex flex-col flex-1">
-                <TopNav onOpenMobileSidebar={() => setMobileOpen(true)} />
-                <main className="flex-1 p-8">{children}</main>
+                {/* TOP NAV */}
+                <TopNav
+                    collapsed={collapsed}
+                    toggleSidebar={() => setCollapsed((prev) => !prev)}
+                />
+
+                {/* CONTENT (scrolls inside only) */}
+                <main className="flex-1 overflow-y-auto p-4 pb-20 md:pb-6">
+                    {children}
+                </main>
+
+                {/* MOBILE NAV */}
+                <BottomNav />
             </div>
         </div>
     );
