@@ -9,6 +9,10 @@ export default function DashboardLayout({ children }) {
     const [collapsed, setCollapsed] = useState(false);
 
     return (
+        <div
+            className="min-h-screen w-full bg-cover bg-center bg-fixed bg-no-repeat"
+            style={{ backgroundImage: "url('/dashboard-bg.png')" }}
+        >
         <div className="flex w-full h-screen overflow-hidden">
 
             {/* DESKTOP SIDEBAR */}
@@ -33,6 +37,7 @@ export default function DashboardLayout({ children }) {
                 {/* MOBILE NAV */}
                 <BottomNav />
             </div>
+        </div>
         </div>
     );
 }

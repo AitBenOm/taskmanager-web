@@ -15,7 +15,7 @@ import {
     Settings,
     KanbanSquare,
     ChevronDown,
-    ChevronRight,
+    ChevronRight, Archive, Shield,
 } from "lucide-react";
 import {useUiStore} from "@/store/ui-store";
 
@@ -30,6 +30,7 @@ export default function Sidebar() {
             items: [
                 { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
                 { name: "My Day", href: "/dashboard/myday", icon: Target },
+                { name: "My Workspaces", href: "/dashboard/workspaces", icon: Archive },
                 { name: "Tasks", href: "/dashboard/tasks", icon: CheckCircle2 },
                 { name: "Kanban", href: "/dashboard/tasks/kanban", icon: KanbanSquare },
                 { name: "Calendar", href: "/dashboard/calendar", icon: Calendar },
@@ -48,6 +49,7 @@ export default function Sidebar() {
             section: "ACCOUNT",
             items: [
                 { name: "Profile", href: "/dashboard/profile", icon: User },
+                { name: "Admin", href: "/dashboard/admin/workspaces", icon: Shield  },
                 { name: "Settings", href: "/dashboard/settings", icon: Settings },
             ],
         },
