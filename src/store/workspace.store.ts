@@ -12,7 +12,7 @@ interface WorkspaceStore {
     selectedWorkspace?: WorkspaceFullDTO;
     createWorkspace: (ws: CreateWorkspaceDTO) => Promise<Workspace>;
     fetchWorkspaces: () => Promise<WorkspaceFullDTO[]>;
-    fetchWorkspaceById: (id: string) => Promise<void>;
+    fetchWorkspaceById: (id: string | undefined) => Promise<WorkspaceFullDTO | undefined>;
     deleteWorkspace: (id: string) => void;
     updateWorkspace: (id: string) => void;
     setSelectedWorkspace: (ws: WorkspaceFullDTO) => void;

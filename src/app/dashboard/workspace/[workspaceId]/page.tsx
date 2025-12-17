@@ -4,6 +4,7 @@
 import {useParams} from "next/navigation";
 import {useWorkspaceStore} from "@/store/workspace.store";
 import {useEffect} from "react";
+import {WorkspaceFullDTO} from "@/types/workspace";
 
 export default function WorkspacesPage() {
 
@@ -12,12 +13,22 @@ export default function WorkspacesPage() {
     const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
     const fetchById = useWorkspaceStore((s) => s.fetchWorkspaceById);
 
+    const coutGroupsByWorkspace = (ws: WorkspaceFullDTO) => ws?.groups?.length;
+    const coutMembersByWorkspace = (ws: WorkspaceFullDTO) => ws?.members?.length;
+    const coutTasksByWorkspace = (ws: WorkspaceFullDTO) => {
+        let total = 0;
+        if (ws.groups)
+            ws.groups.map((g) => total += g.tasks?.length ?? 0);
+        return total;
+    }
 
     useEffect(() => {
         void fetchById(workspaceId?.toString());
     }, []);
-    console.log(workspaceId);
-
+// Log changes but don't re-fetch
+    useEffect(() => {
+        console.log("Fetched workspace:", activeWorkspace);
+    }, [activeWorkspace]);
     return (
         <div className="min-h-screen bg-[url('/dashboard-bg.png')] bg-cover bg-center bg-fixed p-6 space-y-12">
 
@@ -28,7 +39,7 @@ export default function WorkspacesPage() {
 
                 <div>
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent">
-                        Workspace Name
+                        {activeWorkspace?.name || "Workspace Name"}
                     </h1>
                     <p className="text-white/70 mt-2 text-sm">
                         This workspace is dedicated to frontend, backend and product teams.
@@ -58,41 +69,27 @@ export default function WorkspacesPage() {
                     </button>
                 </div>
             </div>
-
+            {/* GROUPS, MEMBERS, STATS, ACTIVITY */}
             <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-white">Groups</h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-                    <div className="p-6 rounded-2xl
+                    {activeWorkspace?.groups?.map((group) => (
+                        <div key={group.id} className="p-6 rounded-2xl
         bg-gradient-to-br from-blue-700/30 via-blue-700/20 to-blue-700/10
         backdrop-blur-xl border border-white/10
         shadow-[0_8px_40px_rgba(0,0,0,0.35)]
         space-y-3 text-white hover:border-white/20 transition">
 
-                        <h3 className="text-xl font-semibold">Frontend Team</h3>
-                        <p className="text-white/70 text-sm">12 Tasks · 6 Members</p>
+                            <h3 className="text-xl font-semibold">{group.name}</h3>
+                            <p className="text-white/70 text-sm">Tasks : {group?.tasks?.length + " · Members : " + activeWorkspace?.members?.length}</p>
 
-                        <button className="px-4 py-2 mt-2 w-full rounded-lg bg-white/10
+                            <button className="px-4 py-2 mt-2 w-full rounded-lg bg-white/10
           border border-white/20 text-white hover:bg-white/20 transition">
-                            Open Group
-                        </button>
-                    </div>
-
-                    <div className="p-6 rounded-2xl
-        bg-gradient-to-br from-blue-700/30 via-blue-700/20 to-blue-700/10
-        backdrop-blur-xl border border-white/10
-        shadow-[0_8px_40px_rgba(0,0,0,0.35)]
-        space-y-3 text-white">
-
-                        <h3 className="text-xl font-semibold">Backend Team</h3>
-                        <p className="text-white/70 text-sm">8 Tasks · 4 Members</p>
-
-                        <button className="px-4 py-2 w-full rounded-lg bg-white/10
-          border border-white/20 text-white hover:bg-white/20 transition">
-                            Open Group
-                        </button>
-                    </div>
+                                Open Group
+                            </button>
+                        </div>))}
 
                     <div className="p-6 rounded-2xl flex items-center justify-center
         bg-gradient-to-br from-blue-700/20 via-blue-500/20 to-cyan-500/20
