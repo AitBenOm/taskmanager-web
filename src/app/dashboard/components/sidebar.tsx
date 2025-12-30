@@ -1,58 +1,76 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import {usePathname} from "next/navigation";
 
 import {
-    LayoutDashboard,
+    Archive,
+    BarChart3,
+    Bell,
     Calendar,
     CheckCircle2,
-    Target,
-    BarChart3,
-    MessageSquare,
-    Bell,
-    User,
-    Settings,
-    KanbanSquare,
     ChevronDown,
     ChevronRight,
+    KanbanSquare,
+    LayoutDashboard,
+    MessageSquare,
+    Settings,
+    Shield,
+    Target,
+    User,
 } from "lucide-react";
 import {useUiStore} from "@/store/ui-store";
+import {useEffect} from "react";
+import {useNavigationStore} from "@/store/navigation.store";
+import {useAuthStore} from "@/store/auth.store";
+import {NavigationService} from "@/services/novigation.service";
 
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const { sidebarCollapsed, sectionState, toggleSection } = useUiStore();
-
+    const {sidebarCollapsed, sectionState, toggleSection} = useUiStore();
+    const loadNavigationContext = useNavigationStore((e) => e.loadNavigationContext);
+    const ctx = useNavigationStore((e) => e.sidebarContext);
+    const userId = useAuthStore((s) => s.user?.id);
     const menuSections = [
         {
             section: "WORKSPACE",
             items: [
-                { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-                { name: "My Day", href: "/dashboard/myday", icon: Target },
-                { name: "Tasks", href: "/dashboard/tasks", icon: CheckCircle2 },
-                { name: "Kanban", href: "/dashboard/tasks/kanban", icon: KanbanSquare },
-                { name: "Calendar", href: "/dashboard/calendar", icon: Calendar },
+                {name: "Dashboard", href: "/dashboard", icon: LayoutDashboard},
+                {name: "My Day", href: "/dashboard/myday", icon: Target},
+                {name: "My Workspaces", href: "/dashboard/workspaces", icon: Archive},
+                {name: "Tasks", href: "/dashboard/tasks", icon: CheckCircle2},
+                {name: "Kanban", href: "/dashboard/tasks/kanban", icon: KanbanSquare},
+                {name: "Calendar", href: "/dashboard/calendar", icon: Calendar},
             ],
         },
         {
             section: "PRODUCTIVITY",
             items: [
-                { name: "Goals", href: "/dashboard/goals", icon: Target },
-                { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-                { name: "Messages", href: "/dashboard/messages", icon: MessageSquare },
-                { name: "Notifications", href: "/dashboard/notifications", icon: Bell },
+                {name: "Goals", href: "/dashboard/goals", icon: Target},
+                {name: "Analytics", href: "/dashboard/analytics", icon: BarChart3},
+                {name: "Messages", href: "/dashboard/messages", icon: MessageSquare},
+                {name: "Notifications", href: "/dashboard/notifications", icon: Bell},
             ],
         },
         {
             section: "ACCOUNT",
             items: [
-                { name: "Profile", href: "/dashboard/profile", icon: User },
-                { name: "Settings", href: "/dashboard/settings", icon: Settings },
+                {name: "Profile", href: "/dashboard/profile", icon: User},
+                {name: "Admin", href: "/dashboard/admin/workspaces", icon: Shield},
+                {name: "Settings", href: "/dashboard/settings", icon: Settings},
             ],
         },
     ];
+    useEffect(() => {
+        if (userId) {
+            loadNavigationContext(userId);
+        }
+    }, [userId]);
+    if (!ctx) {
 
+        return <div className="p-4 text-white/60">Loading menu...</div>;
+    }
     return (
         <aside
             className={`
@@ -64,6 +82,17 @@ export default function Sidebar() {
         ${sidebarCollapsed ? "w-20" : "w-64"}
       `}
         >
+            <button
+                onClick={() => NavigationService.getNavigationContext(userId)}
+                className={`
+          absolute top-4 right-4 p-1 rounded-md
+          bg-white/10 hover:bg-white/20
+          text-slate-200 hover:text-white
+          transition
+        `}
+            >
+                toto
+            </button>
             {/* LOGO */}
             <div className="flex items-center justify-center my-8">
                 {!sidebarCollapsed ? (
@@ -89,7 +118,7 @@ export default function Sidebar() {
                                     className="w-full flex items-center justify-between text-slate-400 text-xs tracking-wider mb-2 px-1"
                                 >
                                     {section.section}
-                                    {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                    {isOpen ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
                                 </button>
                             )}
 
@@ -148,7 +177,8 @@ export default function Sidebar() {
                     sidebarCollapsed ? "justify-center" : ""
                 }`}
             >
-                <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white">
+                <div
+                    className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white">
                     O
                 </div>
 

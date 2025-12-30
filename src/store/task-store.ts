@@ -12,7 +12,7 @@ interface TaskStore {
     // STATE
     // ======================
     tasks: Task[];
-    activeTask: Task | null;
+        activeTask: Task | null;
 
     statusFilter: TaskStatus | "ALL";
     priorityFilter: TaskPriority | "ALL";
@@ -156,9 +156,9 @@ function buildTaskTree(tasks: Task[]): Task[] {
 
     return roots;
 }
-
-
 export const useTaskStore = create<TaskStore>()(
+
+
     immer((set, get) => ({
         // ======================
         // INITIAL STATE
@@ -185,7 +185,7 @@ export const useTaskStore = create<TaskStore>()(
                 const tree = buildTaskTree(tasks);
                 set((state) => {
                     state.tasks = tree;
-                });
+                });{}
             } finally {
                 loading.setLoading(false);
             }

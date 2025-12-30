@@ -69,6 +69,10 @@ export default function RegisterPage() {
     }
 
     return (
+        <div
+            className="min-h-screen w-full bg-cover bg-center bg-fixed bg-no-repeat"
+            style={{ backgroundImage: "url('/dashboard-bg.png')" }}
+        >
         <div className="min-h-screen flex items-center justify-center
          bg-gradient-to-br from-[#0A1A2F] via-[#0F2E4F] to-[#1A4D7A] px-4">
 
@@ -228,6 +232,7 @@ export default function RegisterPage() {
 
                 </Form>
             </div>
+        </div>
         </div>
     );
 }

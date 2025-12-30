@@ -71,6 +71,10 @@ export default function LoginPage() {
     }
 
     return (
+        <div
+            className="min-h-screen w-full bg-cover bg-center bg-fixed bg-no-repeat"
+            style={{ backgroundImage: "url('/dashboard-bg.png')" }}
+        >
         <div className="min-h-screen w-full grid grid-cols-1 md:grid-cols-2">
 
             {/* LEFT SIDE — MATCHES DASHBOARD STYLE */}
@@ -208,6 +212,7 @@ export default function LoginPage() {
                 {/* darkened overlay for readability */}
                 <div className="absolute inset-0 bg-black/20" />
             </div>
+        </div>
         </div>
     );
 }
