@@ -2,7 +2,7 @@
 // WORKSPACE DTOs — Matching Prisma + Frontend Style
 // ================================================
 
-import {UpdateTaskDTO} from "@/types/task";
+import {Task, UpdateTaskDTO} from "@/types/task";
 
 export interface Workspace {
     id: string;
@@ -24,7 +24,7 @@ export interface WorkspaceFullDTO {
     updatedAt: string;
 
     groups: WorkspaceGroupDTO[];
-    members: WorkspaceMemberDTO[];
+    members: memberDTO[];
 }
 
 // Group object (basic for now)
@@ -63,10 +63,11 @@ export interface WorkspaceDTO {
 }
 
 // WORKSPACE MEMBER DTO
-export interface WorkspaceMemberDTO {
+export interface memberDTO {
     id: string;
     userId: string;
     workspaceId: string;
+    groupId: string;
     role: WorkspaceRoleDTO;
     joinedAt: string;
     user?: {
@@ -109,7 +110,7 @@ export interface WorkspaceActivityDTO {
 // WORKSPACE CONTEXT — FULL WORKSPACE PAGE PAYLOAD
 export interface WorkspaceContextDTO {
     workspace: WorkspaceDTO;
-    members: WorkspaceMemberDTO[];
+    members: memberDTO[];
     groups: GroupDTO[];
     stats: WorkspaceStatsDTO;
     activity: WorkspaceActivityDTO[];
@@ -121,6 +122,8 @@ export interface GroupDTO {
     name: string;
     type: GroupTypeDTO;
     description?: string | null;
+    members?: memberDTO[];
+    tasks?: Task[];
     iconUrl?: string | null;
     ownerId: string;
     workspaceId?: string | null;
